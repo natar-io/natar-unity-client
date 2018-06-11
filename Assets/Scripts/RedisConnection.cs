@@ -15,6 +15,7 @@ public class RedisConnection : MonoBehaviour {
     public string ServerIp = "127.0.0.1";
     public int ServerPort = 6379;
     public string ServerKey = "custom:image";
+    public Camera originCamera;
 
     private RedisDataAccessProvider redis;
     private Texture2D videoTexture;
@@ -44,6 +45,8 @@ public class RedisConnection : MonoBehaviour {
         
         // Messaging is an helper class that provides helper functions for easy pub/sub usage.
         // redis.Messaging.Subscribe("message");
+
+        //SetupCamera(640, 480, new Vector2(300, 400), new Vector2(1000, 1000));
     }
 
     /// <summary>
@@ -86,12 +89,7 @@ public class RedisConnection : MonoBehaviour {
         if (videoTexture == null || videoTexture.width != (int)width || videoTexture.height != (int)height) {
             videoTexture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false);
         }
-        //* Load texture from raw data
         videoTexture.LoadRawTextureData(imageData);
-        /*/ //Load texture creating a color array 
-        Color32[] image = Utils.ByteArrayToColor(imageData);
-        videoTexture.SetPixels32(image);
-        //*/
 
         // Get markers informations
         commandId = redis.SendCommand(RedisCommand.GET, ServerKey + ":detected-markers");
@@ -124,5 +122,28 @@ public class RedisConnection : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         RedisImageToTexture();
+    }
+
+
+    void SetupCamera(uint width, uint height, Vector2 opticalCenter, Vector2 focal)
+    {
+        float dx = opticalCenter.x - width / 2;
+        float dy = opticalCenter.y - height / 2;
+
+        float near = originCamera.nearClipPlane;
+        float far = originCamera.farClipPlane;
+
+        Matrix4x4 projectionMatrix  = new Matrix4x4();
+
+        Vector4 row0 = new Vector4((2f * focal.x / width), 0,(2f * dx / width), 0);
+        Vector4 row1 = new Vector4(0, 2f * focal.y / height, -2f * (dy + 1f) / height, 0);
+        Vector4 row2 = new Vector4(0, 0, -(far + near) / (far - near), -near * (1 + (far + near) / (far - near)));
+        Vector4 row3 = new Vector4(0, 0, -1, 0);
+
+        projectionMatrix.SetRow(0, row0);
+        projectionMatrix.SetRow(1, row1);
+        projectionMatrix.SetRow(2, row2);
+
+        originCamera.projectionMatrix = projectionMatrix;    
     }
 }
