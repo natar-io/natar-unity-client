@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Net.Sockets;
+// To use "." in floats
+using System.Globalization;
 
 using UnityEngine;
 
@@ -19,6 +21,13 @@ public class RedisConnection : MonoBehaviour {
 
     private RedisDataAccessProvider redis;
     private Texture2D videoTexture;
+    
+    private static string OUTPUT_PREFIX = "nectar:";
+    private static string OUTPUT_PREFIX2 = ":camera-server:camera";
+    private static string REDIS_PORT = "6379";
+
+    static string defaultHost = "jiii-mi";
+    static string defaultName = OUTPUT_PREFIX + defaultHost + OUTPUT_PREFIX2 + "#0";
     
     void Start() {
         Debug.Log("Redis Connection start");
@@ -46,7 +55,15 @@ public class RedisConnection : MonoBehaviour {
         // Messaging is an helper class that provides helper functions for easy pub/sub usage.
         // redis.Messaging.Subscribe("message");
 
-        //SetupCamera(640, 480, new Vector2(300, 400), new Vector2(1000, 1000));
+        CameraParameters camParams = RedisGetCameraParameters();
+        ApplicationParameters.camParams = (CameraParameters) camParams;
+        SetupCamera(ApplicationParameters.camParams);
+
+        Matrix4x4? pose3D = RedisGetPose();
+        if (pose3D != null) {            
+            ApplicationParameters.pose3D = (Matrix4x4) pose3D;
+        }
+
     }
 
     /// <summary>
@@ -64,6 +81,41 @@ public class RedisConnection : MonoBehaviour {
     /// <param name="message">The message that was published</param>
     void OnMessageRecieved(string channelname, string message) {
         Debug.Log(string.Format("[PUB] {0} - {1} ", channelname, message));
+    }
+
+    Matrix4x4? RedisGetPose()
+    {
+        int commandId = redis.SendCommand(RedisCommand.GET, ServerKey + ":detected-pose");
+        string jsonPose = Utils.RedisTryReadString(redis, commandId);
+        if (jsonPose != null) {
+            // Hand made parsing
+            var charstoRemove = new string[] { ",", "[", "]", "\n", "\t"};
+            foreach (var c in charstoRemove) {
+                jsonPose = jsonPose.Replace(c, string.Empty);
+            }
+            Matrix4x4 poseMatrix = new Matrix4x4();
+            string[] poseValue = jsonPose.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+            int cpt = 0;
+            foreach (var value in poseValue) {
+                if (cpt >= 16)
+                    cpt = cpt - 16 + 1;
+                poseMatrix[cpt] = float.Parse(value, CultureInfo.InvariantCulture.NumberFormat);
+                cpt += 4;
+            }
+            return poseMatrix;
+        }
+        return null;
+    }
+
+    CameraParameters RedisGetCameraParameters()
+    {
+        int commandId = redis.SendCommand(RedisCommand.GET, OUTPUT_PREFIX + defaultHost + ":calibration:astra-s-rgb");
+        string cameraParameters = Utils.RedisTryReadString(redis, commandId);
+        if (cameraParameters != null) {
+            CameraParameters camParams = JsonUtility.FromJson<CameraParameters>(cameraParameters);
+            return camParams;
+        }
+        return new CameraParameters();
     }   
 
     /// <summary>
@@ -124,26 +176,27 @@ public class RedisConnection : MonoBehaviour {
         RedisImageToTexture();
     }
 
-
-    void SetupCamera(uint width, uint height, Vector2 opticalCenter, Vector2 focal)
+    void SetupCamera(CameraParameters camParams) //int w, int h, float cx, float cy, float fx, float fy)
     {
-        float dx = opticalCenter.x - width / 2;
-        float dy = opticalCenter.y - height / 2;
+        float dx = camParams.cx - camParams.width / 2;
+        float dy = camParams.cy - camParams.height / 2;
 
         float near = originCamera.nearClipPlane;
         float far = originCamera.farClipPlane;
 
+
         Matrix4x4 projectionMatrix  = new Matrix4x4();
 
-        Vector4 row0 = new Vector4((2f * focal.x / width), 0,(2f * dx / width), 0);
-        Vector4 row1 = new Vector4(0, 2f * focal.y / height, -2f * (dy + 1f) / height, 0);
-        Vector4 row2 = new Vector4(0, 0, -(far + near) / (far - near), -near * (1 + (far + near) / (far - near)));
+        Vector4 row0 = new Vector4((2f * camParams.fx / camParams.width), 0, (2f * dx / camParams.width), 0);
+        Vector4 row1 = new Vector4(0, 2f * camParams.fy / camParams.height, -2f * (dy + 1f) / camParams.height,  0);
+        Vector4 row2 = new Vector4(0, 0, -(far + near) / (far - near), -near * ( 1 + (far + near) / (far - near)));
         Vector4 row3 = new Vector4(0, 0, -1, 0);
 
         projectionMatrix.SetRow(0, row0);
         projectionMatrix.SetRow(1, row1);
         projectionMatrix.SetRow(2, row2);
-
-        originCamera.projectionMatrix = projectionMatrix;    
+        projectionMatrix.SetRow(3, row3);
+        
+        originCamera.projectionMatrix = projectionMatrix;
     }
 }
