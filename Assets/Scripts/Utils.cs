@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Globalization; // '.' in floats
 using System.Linq; // Int32
 using System; // Exception
-
 using UnityEngine; // Color32, Texture2D
 using TeamDev.Redis; // RedisDataAccessProvider
 
@@ -60,6 +60,51 @@ public static class Utils {
         }
         return data;
     }
+
+    /// <summary>
+    /// Tries to get physical camera parameter saved in redis
+    /// </summary>
+    /// <param name="key">the key where to look for parameters</param>
+    /// <returns></returns>
+    public static CameraParameters RedisTryGetCameraParameters(RedisDataAccessProvider redis, string key)
+    {
+        int commandId = redis.SendCommand(RedisCommand.GET, key);
+        string cameraParameters = Utils.RedisTryReadString(redis, commandId);
+        if (cameraParameters != null) {
+            CameraParameters camParams = JsonUtility.FromJson<CameraParameters>(cameraParameters);
+            return camParams;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Tries to get 3D pose information saved in redis
+    /// </summary>
+    /// <param name="key">the key whereto look for 3d pose"</param>
+    /// <returns></returns>
+    public static Matrix4x4? RedisTryGetPose3D(RedisDataAccessProvider redis, string key)
+    {
+        int commandId = redis.SendCommand(RedisCommand.GET, key);
+        string jsonPose = Utils.RedisTryReadString(redis, commandId);
+        if (jsonPose != null) {
+            // Hand made parsing
+            var charstoRemove = new string[] { ",", "[", "]", "\n", "\t"};
+            foreach (var c in charstoRemove) {
+                jsonPose = jsonPose.Replace(c, string.Empty);
+            }
+            Matrix4x4 poseMatrix = new Matrix4x4();
+            string[] poseValue = jsonPose.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+            int cpt = 0;
+            foreach (var value in poseValue) {
+                if (cpt >= 16)
+                    cpt = cpt - 16 + 1;
+                poseMatrix[cpt] = float.Parse(value, CultureInfo.InvariantCulture.NumberFormat);
+                cpt += 4;
+            }
+            return poseMatrix;
+        }
+        return null;
+    }   
 
     /// <summary>
     /// Convert raw image data (byte array) into Color32 array.
