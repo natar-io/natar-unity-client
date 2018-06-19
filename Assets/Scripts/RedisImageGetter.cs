@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Text;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,29 +21,50 @@ public class RedisImageGetter : MonoBehaviour {
 	private RawImage rawImage;
 	private Texture2D videoTexture;
 
+	byte[] imageData;
+
 	void Start () {
 		rawImage = GetComponent<RawImage>();
+		RedisConnectionHandler.Instance.redis.ChannelSubscribed += new ChannelSubscribedHandler (OnChannelSubscribed);
+		RedisConnectionHandler.Instance.redis.MessageReceived += new MessageReceivedHandler (OnMessageRecieved);
+		RedisConnectionHandler.Instance.redis.Messaging.Subscribe (ImageKey);
+	}
+
+	void OnChannelSubscribed (string channelName) {
+		Debug.Log ("[IMAGE] Successfully subscribe to: " + channelName);
+	}
+
+	void OnMessageRecieved (string channelName, string message) {
+		if (channelName != ImageKey) {
+			return;
+		}
+		Debug.Log(message.Length);
+		//imageData = Encoding.UTF8.GetBytes(message);
+		//Debug.Log(imageData.Length);
+		Debug.Log("[IMAGE] Image received.");
 	}
 
 	// Update is called once per frame
 	void Update () {
-		RedisImageToTexture ();
+		// Image width / height is equal to camera width / height
+		/*
+		int width = ApplicationParameters.camParams.width;
+		int height = ApplicationParameters.camParams.height;		
+		if (videoTexture == null || videoTexture.width != (int) width || videoTexture.height != (int) height) {
+			videoTexture = new Texture2D ((int) width, (int) height, TextureFormat.RGB24, false);
+		}
+		videoTexture.LoadRawTextureData (imageData);
+		//RedisImageToTexture ();
+		*/
 	}
 
 	void RedisImageToTexture () {
-		int commandId;
-		commandId = Rch.Instance.redis.SendCommand (RedisCommand.GET, ImageKey + ":width");
-		int? width = Utils.RedisTryReadInt (Rch.Instance.redis, commandId);
-
-		commandId = Rch.Instance.redis.SendCommand (RedisCommand.GET, ImageKey + ":height");
-		int? height = Utils.RedisTryReadInt (Rch.Instance.redis, commandId);
-
-		if (!width.HasValue || !height.HasValue) {
-			throw new ArgumentException ("Could not fetch image width or height from redis server. Please check connection settings.");
-		}
+		// Image width / height is equal to camera width / height
+		int width = ApplicationParameters.camParams.width;
+		int height = ApplicationParameters.camParams.height;
 
 		// Get this particular commandId
-		commandId = Rch.Instance.redis.SendCommand (RedisCommand.GET, ImageKey);
+		int commandId = Rch.Instance.redis.SendCommand (RedisCommand.GET, ImageKey);
 		// Get image data from this particular command to avoid unexpected results
 		byte[] imageData = Utils.RedisTryReadData (Rch.Instance.redis, commandId);
 
