@@ -1,12 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System;
-using System.Text;
-
+using TeamDev.Redis;
 using UnityEngine;
 using UnityEngine.UI;
-
-using TeamDev.Redis;
 
 using Rch = RedisConnectionHandler;
 
@@ -15,47 +12,52 @@ using Rch = RedisConnectionHandler;
 /// </summary>
 public class RedisImageGetter : MonoBehaviour {
 
-	public string ImageKey = "custom:image";
+	public string ImageKey = "frame";
+	public bool DebugPublish = false;
 
 	private RedisDataAccessProvider redis;
 	private RawImage rawImage;
 	private Texture2D videoTexture;
-
-	byte[] imageData;
+	private byte[] imageData;
 
 	void Start () {
-		rawImage = GetComponent<RawImage>();
-		RedisConnectionHandler.Instance.redis.ChannelSubscribed += new ChannelSubscribedHandler (OnChannelSubscribed);
-		RedisConnectionHandler.Instance.redis.MessageReceived += new MessageReceivedHandler (OnMessageRecieved);
-		RedisConnectionHandler.Instance.redis.Messaging.Subscribe (ImageKey);
+		rawImage = GetComponent<RawImage> ();
+		RedisSubscriptionHandler.Instance.Sub (ImageKey);
+		RedisConnectionHandler.Instance.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler (OnImageReceived);
 	}
 
-	void OnChannelSubscribed (string channelName) {
-		Debug.Log ("[IMAGE] Successfully subscribe to: " + channelName);
-	}
-
-	void OnMessageRecieved (string channelName, string message) {
+	void OnImageReceived (string channelName, byte[] message) {
 		if (channelName != ImageKey) {
 			return;
 		}
-		Debug.Log(message.Length);
-		//imageData = Encoding.UTF8.GetBytes(message);
-		//Debug.Log(imageData.Length);
-		Debug.Log("[IMAGE] Image received.");
+		Debug.Log (message.Length);
+		imageData = message;
 	}
 
 	// Update is called once per frame
 	void Update () {
+		if (DebugPublish) {
+			Debug.Log ("Publishing ...");
+			RedisConnectionHandler.Instance.redis.Messaging.Publish (ImageKey, "Hello");
+		}
 		// Image width / height is equal to camera width / height
-		/*
+		if (imageData == null) {
+			return;
+		}
+
 		int width = ApplicationParameters.camParams.width;
-		int height = ApplicationParameters.camParams.height;		
+		int height = ApplicationParameters.camParams.height;
 		if (videoTexture == null || videoTexture.width != (int) width || videoTexture.height != (int) height) {
 			videoTexture = new Texture2D ((int) width, (int) height, TextureFormat.RGB24, false);
 		}
 		videoTexture.LoadRawTextureData (imageData);
-		//RedisImageToTexture ();
-		*/
+		videoTexture.Apply ();
+		rawImage.texture = videoTexture;
+	}
+
+	// OnApplicationQuit is called when the editor stops playing.
+	void OnApplicationQuit () {
+		RedisSubscriptionHandler.Instance.Unsub (ImageKey);
 	}
 
 	void RedisImageToTexture () {

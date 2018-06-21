@@ -16,6 +16,7 @@ namespace TeamDev.Redis
   public delegate void ChannelSubscribedHandler(string channelname);
   public delegate void ChannelUnsubscribedHandler(string channelname);
   public delegate void MessageReceivedHandler(string channelname, string message);
+  public delegate void BinaryMessageReceivedHandler(string channelname, byte[] message);
 
   public class RedisDataAccessProvider : DataAccessProvider, IDisposable
   {
@@ -41,6 +42,7 @@ namespace TeamDev.Redis
     public event ChannelSubscribedHandler ChannelSubscribed;
     public event ChannelUnsubscribedHandler ChannelUnsubscribed;
     public event MessageReceivedHandler MessageReceived;
+    public event BinaryMessageReceivedHandler BinaryMessageReceived;
 
     #endregion
 
@@ -134,9 +136,14 @@ namespace TeamDev.Redis
       if (ChannelUnsubscribed != null) ChannelUnsubscribed(channelname);
     }
 
-    internal void RaiseMessageReceivedEvend(string channelname, string message)
+    internal void RaiseMessageReceivedEvent(string channelname, string message)
     {
       if (MessageReceived != null) MessageReceived(channelname, message);
+    }
+
+    internal void RaiseBinaryMessageReceivedEvent(string channelname, byte[] message)
+    {
+      if (BinaryMessageReceived != null) BinaryMessageReceived(channelname, message);
     }
 
     #endregion

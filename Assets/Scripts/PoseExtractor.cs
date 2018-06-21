@@ -6,27 +6,24 @@ using UnityEngine;
 
 public class PoseExtractor : MonoBehaviour {
 
-	public string PoseKey = "custom:image:detected-pose";
+	public string PoseKey = "pose";
 
 	public bool poseUpdated = true;
 	public Matrix4x4 pose3D = new Matrix4x4();
+	
 	// Use this for initialization
 	void Start () {
-		RedisConnectionHandler.Instance.redis.ChannelSubscribed += new ChannelSubscribedHandler (OnChannelSubscribed);
-		RedisConnectionHandler.Instance.redis.MessageReceived += new MessageReceivedHandler (OnMessageRecieved);
-		RedisConnectionHandler.Instance.redis.Messaging.Subscribe (PoseKey);
+		RedisSubscriptionHandler.Instance.Sub(PoseKey);
+		RedisConnectionHandler.Instance.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler(OnPoseReceived);
 	}
 
-	void OnChannelSubscribed (string channelName) {
-		Debug.Log ("[POSE] Successfully subscribe to: " + channelName);
-	}
-
-	void OnMessageRecieved (string channelName, string message) {
+	void OnPoseReceived (string channelName, byte[] message) {
 		if (channelName != PoseKey) {
 			return;
 		}
 		poseUpdated = false;
-		pose3D = Utils.JSONToPose3D (message);
+		string data = Utils.ByteToString(message);
+		pose3D = Utils.JSONToPose3D (data);
 		Debug.Log(pose3D);
 	}
 
@@ -38,5 +35,10 @@ public class PoseExtractor : MonoBehaviour {
 			this.transform.rotation = Utils.ExtractRotation ((Matrix4x4) pose3D);
 			poseUpdated = true;
 		}
+	}
+
+	void OnApplicationQuit()
+	{
+		RedisSubscriptionHandler.Instance.Unsub(PoseKey);
 	}
 }

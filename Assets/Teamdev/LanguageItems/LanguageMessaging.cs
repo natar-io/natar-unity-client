@@ -8,6 +8,8 @@ using System.IO;
 using System.Threading;
 using System.Net.Sockets;
 
+using UnityEngine;
+
 namespace TeamDev.Redis.LanguageItems
 {
   public class LanguageMessaging : ILanguageItem, IComplexItem
@@ -47,17 +49,15 @@ namespace TeamDev.Redis.LanguageItems
     void ChannelsReadingThread(object state)
     {
       var provider = state as ProviderState;
-
       if (provider != null)
       {
         var stream = provider.Stream;
         while (true)
         {
           //_provider.Connect();
-
-          while (!stream.DataAvailable)
+          while (!stream.DataAvailable) {
             Thread.Sleep(this._provider.Configuration.ReceiveDelayms);
-
+          }
           var operation = _provider.ReadString();
 
           switch (operation)
@@ -76,8 +76,9 @@ namespace TeamDev.Redis.LanguageItems
               break;
             case "message":
               var mchannel = _provider.ReadString();
-              var message = _provider.ReadString();
-              provider.Provider.RaiseMessageReceivedEvend(mchannel, message);
+              // Modified by nclsp, 14:26 - 21/06/2018
+              var bmessage = _provider.ReadData();
+              provider.Provider.RaiseBinaryMessageReceivedEvent(mchannel, bmessage);
               break;
             default:
               break;

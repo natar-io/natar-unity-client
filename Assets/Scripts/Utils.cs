@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization; // '.' in floats
 using System.Linq; // Int32
+using System.Text; // Encoding.UTF8
 using System; // Exception
 using UnityEngine; // Color32, Texture2D
 using TeamDev.Redis; // RedisDataAccessProvider
@@ -86,13 +87,18 @@ public static class Utils {
         return null;
     }
 
-    public static Matrix4x4 JSONToPose3D (string message) {
+    /// <summary>
+    /// Convert JSON string into a 4x4 Matrix
+    /// </summary>
+    /// <param name="json">the JSON string to convert</param>
+    /// <returns></returns>
+    public static Matrix4x4 JSONToPose3D (string json) {
         var charstoRemove = new string[] { ",", "[", "]", "\n", "\t" };
         foreach (var c in charstoRemove) {
-            message = message.Replace (c, string.Empty);
+            json = json.Replace (c, string.Empty);
         }
         Matrix4x4 poseMatrix = new Matrix4x4 ();
-        string[] poseValue = message.Split (new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+        string[] poseValue = json.Split (new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
         int cpt = 0;
         for (int i = 0 ; i < 4 ; i++)
         {
@@ -172,5 +178,9 @@ public static class Utils {
     /// <returns></returns>
     public static Vector3 ExtractScale (Matrix4x4 matrix) {
         return new Vector3 (matrix.GetColumn (0).magnitude, matrix.GetColumn (1).magnitude, matrix.GetColumn (2).magnitude);
+    }
+
+    public static String ByteToString(byte[] data) {
+        return Encoding.UTF8.GetString(data);
     }
 }
