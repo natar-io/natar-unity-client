@@ -27,8 +27,12 @@ public class PoseExtractor : MonoBehaviour {
 
 	void Update () {
 		if (!poseUpdated) {
-			this.transform.position = Utils.ExtractTranslation ((Matrix4x4) pose3D);
-			this.transform.rotation = Utils.ExtractRotation ((Matrix4x4) pose3D);
+			// this.transform.position = Utils.ExtractTranslation ((Matrix4x4) pose3D);
+			// this.transform.rotation = Utils.ExtractRotation ((Matrix4x4) pose3D);
+
+			this.transform.localPosition = Utils.ExtractTranslation ((Matrix4x4) pose3D);
+			this.transform.localRotation = Utils.ExtractRotation ((Matrix4x4) pose3D);
+
 			poseUpdated = true;
 		}
 	}
