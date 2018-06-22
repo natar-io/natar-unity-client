@@ -27,7 +27,7 @@ namespace TeamDev.Redis.LanguageItems
       Port = 6379;
       SendTimeout = -1;
       NoDelaySocket = false;
-      ReceiveDelayms = 1;
+      ReceiveDelayms = 0;
 
       LogUnbalancedCommands = false;
     }

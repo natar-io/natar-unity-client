@@ -7,10 +7,10 @@ using UnityEngine;
 /// </summary>
 public class CameraSetup : MonoBehaviour {
 
-	public int f = 920;	
+	public int f = 920;
 	public string CameraParameterKey = "nectar:jiii-mi:calibration:astra-s-rgb";
 
-	private Camera camera;
+	private new Camera camera;
 
 	// Use this for initialization
 	void Start () {
@@ -35,9 +35,8 @@ public class CameraSetup : MonoBehaviour {
 		}
 	}
 
-	void Update()
-	{
-		SetupCamera(ApplicationParameters.camParams);
+	void Update () {
+		SetupCamera (ApplicationParameters.camParams);
 	}
 
 	void SetupCamera (CameraParameters camParams) {

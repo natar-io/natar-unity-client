@@ -35,8 +35,8 @@ public static class Utils {
         string value = null;
         try {
             value = redis.ReadString (commandId);
-        } catch (Exception e) {
-            Debug.LogError ("Failed read string.");
+        } catch (Exception) {
+            Debug.LogError ("Failed to read string.");
         }
         return value;
     }
@@ -51,7 +51,7 @@ public static class Utils {
         byte[] data = null;
         try {
             data = redis.ReadData (commandId);
-        } catch (Exception e) {
+        } catch (Exception) {
             Debug.Log ("Failed to read data.");
         }
         return data;
@@ -99,7 +99,6 @@ public static class Utils {
         }
         Matrix4x4 poseMatrix = new Matrix4x4 ();
         string[] poseValue = json.Split (new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-        int cpt = 0;
         for (int i = 0 ; i < 4 ; i++)
         {
             float val0 = float.Parse(poseValue[i*4], CultureInfo.InvariantCulture.NumberFormat);

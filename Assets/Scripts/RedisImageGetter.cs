@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TeamDev.Redis;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,14 +25,21 @@ public class RedisImageGetter : MonoBehaviour {
 		rawImage = GetComponent<RawImage> ();
 		RedisSubscriptionHandler.Instance.Sub (ImageKey);
 		RedisConnectionHandler.Instance.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler (OnImageReceived);
+
+		int width = ApplicationParameters.camParams.width;
+		int height = ApplicationParameters.camParams.height;
+		int channels = 3;
+		if (videoTexture == null || videoTexture.width != (int) width || videoTexture.height != (int) height) {
+			videoTexture = new Texture2D ((int) width, (int) height, TextureFormat.RGB24, false);
+			imageData = new byte[width * height * channels];
+		}
 	}
 
 	void OnImageReceived (string channelName, byte[] message) {
 		if (channelName != ImageKey) {
 			return;
 		}
-		Debug.Log (message.Length);
-		imageData = message;
+		imageData = message.ToArray ();
 	}
 
 	// Update is called once per frame
@@ -40,16 +48,12 @@ public class RedisImageGetter : MonoBehaviour {
 			Debug.Log ("Publishing ...");
 			RedisConnectionHandler.Instance.redis.Messaging.Publish (ImageKey, "Hello");
 		}
+
 		// Image width / height is equal to camera width / height
 		if (imageData == null) {
 			return;
 		}
 
-		int width = ApplicationParameters.camParams.width;
-		int height = ApplicationParameters.camParams.height;
-		if (videoTexture == null || videoTexture.width != (int) width || videoTexture.height != (int) height) {
-			videoTexture = new Texture2D ((int) width, (int) height, TextureFormat.RGB24, false);
-		}
 		videoTexture.LoadRawTextureData (imageData);
 		videoTexture.Apply ();
 		rawImage.texture = videoTexture;

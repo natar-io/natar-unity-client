@@ -76,7 +76,7 @@ namespace TeamDev.Redis.LanguageItems
               break;
             case "message":
               var mchannel = _provider.ReadString();
-              // Modified by nclsp, 14:26 - 21/06/2018
+              // Modified by nclsp, 14:26 - 21/06/2018 - Reading message as binary instead of string.
               var bmessage = _provider.ReadData();
               provider.Provider.RaiseBinaryMessageReceivedEvent(mchannel, bmessage);
               break;

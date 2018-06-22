@@ -28,7 +28,7 @@ public class RedisConnectionHandler : Singleton<RedisConnectionHandler> {
 		try {
 			redis.Connect ();
 		} catch (SocketException e) {
-			Debug.Log ("Error");
+			Debug.Log ("Error: " + e.ToString());
 			isConnected = false;
 			return;
 		}
