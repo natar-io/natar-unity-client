@@ -99,12 +99,15 @@ public class CameraSetup : MonoBehaviour {
 		projectionMatrix.SetRow (1, row1);
 		projectionMatrix.SetRow (2, row2);
 		projectionMatrix.SetRow (3, row3);
-
+		Debug.Log("fx: " + intrinsics.fx);
+		Debug.Log("fy: " + intrinsics.fy);
+		
 		camera.projectionMatrix = projectionMatrix;
 	}
 
 	void SetupExtrinsics(ExtrinsicsParameters extrinsics) {
 		Matrix4x4 transform = new Matrix4x4 ();
+		Debug.Log("Extriniscs: " + extrinsics.matrix[0]);
 		transform.SetRow(0, new Vector4(extrinsics.matrix[0], extrinsics.matrix[1], extrinsics.matrix[2], extrinsics.matrix[3]));
 		transform.SetRow(1, new Vector4(extrinsics.matrix[4], extrinsics.matrix[5], extrinsics.matrix[6], extrinsics.matrix[7]));
 		transform.SetRow(2, new Vector4(extrinsics.matrix[8], extrinsics.matrix[9], extrinsics.matrix[10], extrinsics.matrix[11]));
