@@ -1,9 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using TeamDev.Redis;
 using UnityEngine;
-using System.Net.Sockets;
-
 public class RedisConnectionHandler : Singleton<RedisConnectionHandler> {
 
 	protected RedisConnectionHandler () { } // To guarentee singleton
@@ -11,14 +10,16 @@ public class RedisConnectionHandler : Singleton<RedisConnectionHandler> {
 	public string IpAddress = "127.0.0.1";
 	public int Port = 6379;
 	public RedisDataAccessProvider redis;
-	public bool isConnected = false;
+
+	[HideInInspector]
+	public bool IsConnected = false;
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 		redis = new RedisDataAccessProvider ();
 		redis.Configuration.Host = IpAddress;
 		redis.Configuration.Port = Port;
-		if (!isConnected) {
+		if (!IsConnected) {
 			TryConnection ();
 		}
 	}
@@ -28,11 +29,11 @@ public class RedisConnectionHandler : Singleton<RedisConnectionHandler> {
 		try {
 			redis.Connect ();
 		} catch (SocketException e) {
-			Debug.Log ("Error: " + e.ToString());
-			isConnected = false;
+			Debug.Log ("Error: " + e.ToString ());
+			IsConnected = false;
 			return;
 		}
-		isConnected = true;
+		IsConnected = true;
 	}
 
 }

@@ -7,8 +7,8 @@ public class PoseExtractor : MonoBehaviour {
 
 	public string PoseKey = "pose";
 
-	public bool poseUpdated = true;
-	public Matrix4x4 pose3D = new Matrix4x4 ();
+	private bool poseUpdated = true;
+	private Matrix4x4 pose3D = new Matrix4x4 ();
 
 	// Use this for initialization
 	void Start () {
@@ -29,7 +29,6 @@ public class PoseExtractor : MonoBehaviour {
 		if (!poseUpdated) {
 			// this.transform.position = Utils.ExtractTranslation ((Matrix4x4) pose3D);
 			// this.transform.rotation = Utils.ExtractRotation ((Matrix4x4) pose3D);
-
 			this.transform.localPosition = Utils.ExtractTranslation ((Matrix4x4) pose3D);
 			this.transform.localRotation = Utils.ExtractRotation ((Matrix4x4) pose3D);
 

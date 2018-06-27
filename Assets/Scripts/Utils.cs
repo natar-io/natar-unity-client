@@ -62,12 +62,22 @@ public static class Utils {
     /// </summary>
     /// <param name="key">the key where to look for parameters</param>
     /// <returns></returns>
-    public static CameraParameters RedisTryGetCameraParameters (RedisDataAccessProvider redis, string key) {
+    public static IntrinsicsParameters RedisTryGetIntrinsics (RedisDataAccessProvider redis, string key) {
         int commandId = redis.SendCommand (RedisCommand.GET, key);
-        string cameraParameters = Utils.RedisTryReadString (redis, commandId);
-        if (cameraParameters != null) {
-            CameraParameters camParams = JsonUtility.FromJson<CameraParameters> (cameraParameters);
-            return camParams;
+        string intrinsics = Utils.RedisTryReadString (redis, commandId);
+        if (intrinsics != null) {
+            IntrinsicsParameters intrinsicsParameters = JsonUtility.FromJson<IntrinsicsParameters> (intrinsics);
+            return intrinsicsParameters;
+        }
+        return null;
+    }
+
+    public static ExtrinsicsParameters RedisTryGetExtrinsics (RedisDataAccessProvider redis, string key) {
+        int commandId = redis.SendCommand (RedisCommand.GET, key);
+        string extrinsics = Utils.RedisTryReadString (redis, commandId);
+        if (extrinsics != null) {
+            ExtrinsicsParameters extrinsicsParameters = JsonUtility.FromJson<ExtrinsicsParameters> (extrinsics);
+            return extrinsicsParameters;
         }
         return null;
     }

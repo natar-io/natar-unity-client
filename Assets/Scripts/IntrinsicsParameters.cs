@@ -1,7 +1,7 @@
 ﻿using System;
 
 [Serializable]
-public class CameraParameters
+public class IntrinsicsParameters
 {
 	public int fx;
 	public int fy;
