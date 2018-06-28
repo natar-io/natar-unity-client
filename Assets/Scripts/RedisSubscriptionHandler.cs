@@ -8,15 +8,15 @@ public class RedisSubscriptionHandler : Singleton<RedisSubscriptionHandler> {
 	protected RedisSubscriptionHandler () { }
 
 	void Start () {
-		RedisConnectionHandler.Instance.redis.ChannelSubscribed += new ChannelSubscribedHandler (OnChannelSubscribed);
+		ApplicationParameters.RedisConnection.redis.ChannelSubscribed += new ChannelSubscribedHandler (OnChannelSubscribed);
 	}
 
 	public void Sub (string channelName) {
-		RedisConnectionHandler.Instance.redis.Messaging.Subscribe (channelName);
+		ApplicationParameters.RedisConnection.redis.Messaging.Subscribe (channelName);
 	}
 
 	public void Unsub (string channelName) {
-		RedisConnectionHandler.Instance.redis.SendCommand(RedisCommand.UNSUBSCRIBE, channelName);
+		ApplicationParameters.RedisConnection.redis.SendCommand(RedisCommand.UNSUBSCRIBE, channelName);
 	}
 
 	void OnChannelSubscribed (string channelName) {

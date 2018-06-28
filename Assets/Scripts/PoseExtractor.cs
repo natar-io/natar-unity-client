@@ -13,7 +13,7 @@ public class PoseExtractor : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		RedisSubscriptionHandler.Instance.Sub (PoseKey);
-		RedisConnectionHandler.Instance.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler (OnPoseReceived);
+		ApplicationParameters.RedisConnection.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler (OnPoseReceived);
 	}
 
 	void OnPoseReceived (string channelName, byte[] message) {
@@ -27,8 +27,6 @@ public class PoseExtractor : MonoBehaviour {
 
 	void Update () {
 		if (!poseUpdated) {
-			// this.transform.position = Utils.ExtractTranslation ((Matrix4x4) pose3D);
-			// this.transform.rotation = Utils.ExtractRotation ((Matrix4x4) pose3D);
 			this.transform.localPosition = Utils.ExtractTranslation ((Matrix4x4) pose3D);
 			this.transform.localRotation = Utils.ExtractRotation ((Matrix4x4) pose3D);
 

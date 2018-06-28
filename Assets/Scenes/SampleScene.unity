@@ -140,6 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bbc584f9651d426bae3ccd987f73cd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PoseKey: pose
 --- !u!4 &213520806
 Transform:
   m_ObjectHideFlags: 0
@@ -183,6 +184,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92506164dbd99479bb07e19faa68c98d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Type: 0
+  IntrinsicsKey: camera0:calibration
+  HasExtrinsics: 0
+  ExtrinsicsKey: 
 --- !u!20 &282840813
 Camera:
   m_ObjectHideFlags: 0
@@ -615,6 +620,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c08b20aea1704dc8af7492a0aeb11b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ImageKey: frame
+  MarkerKey: markers
+  DebugMarkers: 1
 --- !u!1 &1418649578
 GameObject:
   m_ObjectHideFlags: 0
@@ -807,6 +815,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92506164dbd99479bb07e19faa68c98d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Type: 0
+  IntrinsicsKey: camera0:calibration
+  HasExtrinsics: 0
+  ExtrinsicsKey: 
 --- !u!20 &1610636950
 Camera:
   m_ObjectHideFlags: 0
@@ -1044,6 +1056,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92506164dbd99479bb07e19faa68c98d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Type: 0
+  IntrinsicsKey: camera0:calibration
+  HasExtrinsics: 0
+  ExtrinsicsKey: 
 --- !u!81 &1964602099
 AudioListener:
   m_ObjectHideFlags: 0

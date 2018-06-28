@@ -28,11 +28,11 @@ public class RedisImageGetter : MonoBehaviour {
 
 		TryInitializeTexture();
 		RedisSubscriptionHandler.Instance.Sub (ImageKey);
-		RedisConnectionHandler.Instance.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler (OnImageReceived);
+		ApplicationParameters.RedisConnection.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler (OnImageReceived);
 
 		if (DebugMarkers) {
 			RedisSubscriptionHandler.Instance.Sub (MarkerKey);
-			RedisConnectionHandler.Instance.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler (OnMarkerReceived);
+			ApplicationParameters.RedisConnection.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler (OnMarkerReceived);
 		}
 	}
 

@@ -3,29 +3,36 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using TeamDev.Redis;
 using UnityEngine;
-public class RedisConnectionHandler : Singleton<RedisConnectionHandler> {
 
-	protected RedisConnectionHandler () { } // To guarentee singleton
+[ExecuteInEditMode]
+public class RedisConnectionHandler : MonoBehaviour {
 
 	public string IpAddress = "127.0.0.1";
 	public int Port = 6379;
-	public RedisDataAccessProvider redis;
-
+	
 	[HideInInspector]
 	public bool IsConnected = false;
+	[HideInInspector]
+	public RedisDataAccessProvider redis;
 
 	// Use this for initialization
-	void Awake () {
-		redis = new RedisDataAccessProvider ();
-		redis.Configuration.Host = IpAddress;
-		redis.Configuration.Port = Port;
-		if (!IsConnected) {
+	void Start () {
+		Debug.Log ("Starting ...");
+		if (!IsConnected || ApplicationParameters.RedisConnection == null) {
+			SetupRedis ();
 			TryConnection ();
+			ApplicationParameters.RedisConnection = this;
 		}
 	}
 
-	public void TryConnection () {
+	void SetupRedis () {
+		redis = new RedisDataAccessProvider ();
+		redis.Configuration.Host = IpAddress;
+		redis.Configuration.Port = Port;
+	}
 
+	public void TryConnection () {
+		Debug.Log ("Trying to connect to redis server: " + IpAddress + ":" + Port + " ...");
 		try {
 			redis.Connect ();
 		} catch (SocketException e) {
@@ -33,7 +40,9 @@ public class RedisConnectionHandler : Singleton<RedisConnectionHandler> {
 			IsConnected = false;
 			return;
 		}
+		Debug.Log ("Connected to: " + IpAddress + ":" + Port);
 		IsConnected = true;
 	}
 
+	void Update () { }
 }

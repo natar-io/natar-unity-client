@@ -7,9 +7,11 @@ using UnityEditor;
 /// <summary>
 /// Gets the Camera parameters in Redis and set them to the camera of which the script is attached
 /// </summary>
+
+[ExecuteInEditMode]
 public class CameraSetup : MonoBehaviour {
 
-	public ApplicationParameters.CameraType Type = ApplicationParameters.CameraType.RGB;
+	public CameraType Type = CameraType.RGB;
 	public string IntrinsicsKey = "camera0:calibration";
 	public bool HasExtrinsics = false;
 	public string ExtrinsicsKey = "";
@@ -19,9 +21,9 @@ public class CameraSetup : MonoBehaviour {
 	void Start () {
 		camera = this.GetComponent<Camera> ();
 
-		if (!RedisConnectionHandler.Instance.IsConnected) {
-			RedisConnectionHandler.Instance.TryConnection ();
-			if (!RedisConnectionHandler.Instance.IsConnected) {
+		if (!ApplicationParameters.RedisConnection.IsConnected) {
+			ApplicationParameters.RedisConnection.TryConnection ();
+			if (!ApplicationParameters.RedisConnection.IsConnected) {
 				Debug.LogError ("Could not connect to redis server. Exiting..");
 #if UNITY_EDITOR
 				UnityEditor.EditorApplication.isPlaying = false;
@@ -31,10 +33,10 @@ public class CameraSetup : MonoBehaviour {
 			}
 		}
 
-		IntrinsicsParameters intrinsics = Utils.RedisTryGetIntrinsics (RedisConnectionHandler.Instance.redis, IntrinsicsKey);
-		ExtrinsicsParameters extrinsics = HasExtrinsics ? Utils.RedisTryGetExtrinsics (RedisConnectionHandler.Instance.redis, ExtrinsicsKey) : null;
+		IntrinsicsParameters intrinsics = Utils.RedisTryGetIntrinsics (ApplicationParameters.RedisConnection.redis, IntrinsicsKey);
+		ExtrinsicsParameters extrinsics = HasExtrinsics ? Utils.RedisTryGetExtrinsics (ApplicationParameters.RedisConnection.redis, ExtrinsicsKey) : null;
 		if (intrinsics != null) {
-			if (Type == ApplicationParameters.CameraType.RGB) {
+			if (Type == CameraType.RGB) {
 				if (ApplicationParameters.RGBCameraIntrinsics != null) {
 					Debug.LogError("Only one RGB Camera is supported for now.");
 					Destroy(this.gameObject);
@@ -44,7 +46,7 @@ public class CameraSetup : MonoBehaviour {
 				ApplicationParameters.RGBCameraAvailable = true;
 				Debug.Log ("Successfully loaded RGB camera parameters.");
 			} 
-			else if (Type == ApplicationParameters.CameraType.DEPTH) {
+			else if (Type == CameraType.DEPTH) {
 				if (ApplicationParameters.DepthCameraIntrinsics != null) {
 					Debug.LogError("Only one DEPTH Camera is supported for now.");
 					Destroy(this.gameObject);
@@ -55,7 +57,7 @@ public class CameraSetup : MonoBehaviour {
 				ApplicationParameters.DepthCameraAvailable = true;
 				Debug.Log ("Successfully loaded DEPTH camera parameters.");
 			}
-			else if (Type == ApplicationParameters.CameraType.PROJECTOR) {
+			else if (Type == CameraType.PROJECTOR) {
 				if (ApplicationParameters.ProjectorIntrinsics != null) {
 					Debug.LogError("Only one PROJECTOR is supported for now.");
 					Destroy(this.gameObject);
@@ -123,8 +125,8 @@ public class CameraSetupEditor : Editor
 	{
 		var cameraSetup = target as CameraSetup;
 		cameraSetup.IntrinsicsKey = EditorGUILayout.TextField("Intrinsics Key:", cameraSetup.IntrinsicsKey);
-		cameraSetup.Type = (ApplicationParameters.CameraType)EditorGUILayout.EnumPopup("Camera Type:", cameraSetup.Type);
-		cameraSetup.HasExtrinsics = cameraSetup.Type != ApplicationParameters.CameraType.RGB ? true : false;
+		cameraSetup.Type = (CameraType)EditorGUILayout.EnumPopup("Camera Type:", cameraSetup.Type);
+		cameraSetup.HasExtrinsics = cameraSetup.Type != CameraType.RGB ? true : false;
 
 		if (cameraSetup.HasExtrinsics) {
 			cameraSetup.ExtrinsicsKey = EditorGUILayout.TextField("Extrinsics Key:", cameraSetup.ExtrinsicsKey);

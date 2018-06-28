@@ -1,14 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TeamDev.Redis;
 using UnityEngine;
 
 public static class ApplicationParameters {
-	public enum CameraType {
-		RGB,
-		GRAY,
-		DEPTH,
-		PROJECTOR,
-	};
+	public static RedisConnectionHandler RedisConnection = null;
+	
 	public static Matrix4x4 pose3D = Matrix4x4.identity;
 
 	public static IntrinsicsParameters RGBCameraIntrinsics = null;
@@ -21,4 +18,6 @@ public static class ApplicationParameters {
 	public static IntrinsicsParameters ProjectorIntrinsics = null;
 	public static ExtrinsicsParameters ProjectorExtrinsics = null;
 	public static bool ProjectorAvailable = false;
+
+	public static int RedisClientCount = 0;
 }
