@@ -22,7 +22,7 @@ public class RedisConnection {
 			redis.Connect();
 		}
 		catch (SocketException e) {
-			Debug.LogError(e.Message + "Could not connect to redis server (" + IpAdress  + ":" + Port + ").");
+			Debug.LogError(e.Message + ": Could not connect to redis server (" + IpAdress  + ":" + Port + ").");
 			return false;
 		}
 		ApplicationParameters.RedisClientCount++;

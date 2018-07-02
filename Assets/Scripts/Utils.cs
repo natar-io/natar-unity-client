@@ -192,4 +192,8 @@ public static class Utils {
     public static String ByteToString(byte[] data) {
         return Encoding.UTF8.GetString(data);
     }
+
+    public static void Log(string objName, string message) {
+        Debug.Log("[" + objName + "] " + message);
+    }
 }
