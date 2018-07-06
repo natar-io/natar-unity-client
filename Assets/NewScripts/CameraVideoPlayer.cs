@@ -22,8 +22,15 @@ public class CameraVideoPlayer : MonoBehaviour {
 
 	private Texture2D videoTexture;
 	private byte[] imageData;
+	private byte[] imageDataRGB;
+	
+	private int width;
+	private int height;
 
 	private bool isConnected = false;
+
+	public bool DebugMarkers = true;
+	private string markersData;
 
 	// Use this for initialization
 	void Start () {
@@ -56,23 +63,41 @@ public class CameraVideoPlayer : MonoBehaviour {
 		redis = connection.GetDataAccessProvider ();
 		if (Application.isPlaying) {
 			subscriber = new Subscriber (redis);
-			subscriber.Subscribe (ARCameraSetup.BaseKey + ARCameraSetup.DataKey, OnImageReceived);
+			if (ARCameraSetup.Type == CameraType.RGB) {
+				subscriber.Subscribe (ARCameraSetup.BaseKey, OnImageReceived);
+				//subscriber.Subscribe (ARCameraSetup.BaseKey + ":" + "markers", OnMarkersReceived);
+			} else {
+				subscriber.Subscribe (ARCameraSetup.BaseKey + ":" + ARCameraSetup.DataKey, OnImageReceived);
+			}
 		}
 
-		int width = ARCameraSetup.IntrinsicsParameters.width;
-		int height = ARCameraSetup.IntrinsicsParameters.height;
+		width = ARCameraSetup.IntrinsicsParameters.width;
+		height = ARCameraSetup.IntrinsicsParameters.height;
 		videoTexture = new Texture2D (width, height, TextureFormat.RGB24, false);
-		imageData = new byte[width * height * 3];
+		if (ARCameraSetup.Type == CameraType.RGB) {
+			imageData = new byte[width * height * 3];
+		}
+		if (ARCameraSetup.Type == CameraType.DEPTH) {
+			imageData = new byte[width * height * 2];
+			imageDataRGB = new byte[width * height * 3];
+		}
 
 		Utils.Log (className, "Successfully initialized video playback.");
 		State = ComponentState.WORKING;
 	}
 
 	void OnImageReceived (string channelName, byte[] message) {
-		if (channelName != ARCameraSetup.BaseKey + ARCameraSetup.DataKey) {
+		if (channelName != ARCameraSetup.BaseKey) {
 			return;
 		}
 		imageData = message.ToArray ();
+	}
+
+	void OnMarkersReceived (string channelName, byte[] message) {
+		if (channelName != ARCameraSetup.BaseKey + ":" + "markers") {
+			return;
+		}
+		markersData = Utils.ByteToString(message);
 	}
 
 	void OnChannelUnsubscribed (string channelName) {
@@ -93,18 +118,50 @@ public class CameraVideoPlayer : MonoBehaviour {
 		}
 
 		if (!Application.isPlaying && redis != null) {
-			int commandId = redis.SendCommand (RedisCommand.GET, ARCameraSetup.BaseKey + ARCameraSetup.DataKey);
-			imageData = Utils.RedisTryReadData (redis, commandId);
+			int commandId;
+			if (ARCameraSetup.Type == CameraType.DEPTH) {
+				commandId = redis.SendCommand (RedisCommand.GET, ARCameraSetup.BaseKey + ":" + ARCameraSetup.DataKey);
+				imageData = Utils.RedisTryReadData (redis, commandId);
+				imageDataRGB = Utils.GRAY16ToRGB24(width, height, imageData);
+			} else {
+				commandId = redis.SendCommand (RedisCommand.GET, ARCameraSetup.BaseKey);
+				imageData = Utils.RedisTryReadData (redis, commandId);
+			}
+
+			if (DebugMarkers && ARCameraSetup.Type == CameraType.RGB) {
+				commandId = redis.SendCommand (RedisCommand.GET, ARCameraSetup.BaseKey + ":" + "markers");
+				byte[] data = Utils.RedisTryReadData (redis, commandId);
+				markersData = Utils.ByteToString (data);
+			}
 		}
 
 		if (imageData != null) {
-			videoTexture.LoadRawTextureData (imageData);
+			if (ARCameraSetup.Type == CameraType.DEPTH) {
+				videoTexture.LoadRawTextureData (imageDataRGB);
+			} else {
+				videoTexture.LoadRawTextureData (imageData);
+			
+				// If we received markers information and that we want to debug markers position
+				if (markersData != null && DebugMarkers) {
+					Markers markers = JsonUtility.FromJson<Markers> (markersData);
+					for (int i = 0; i < markers.markers.Length; ++i) {
+						Marker m = markers.markers[i];
+						for (int j = 0; j < m.corners.Length; j += 2) {
+							Utils.Circle (this.videoTexture, (int) m.corners[j], (int) m.corners[j + 1], 2, Color.green);
+						}
+					}
+				}
+			}
+
 			videoTexture.Apply ();
 			cameraImagePlayback.texture = videoTexture;
+		} else {
+			/* Do something to handle null image */
+			// Count null images and if too much -> DISCONNECTED ?
 		}
 	}
 
 	void OnApplicationQuit () {
-		//subscriber.Unsubscribe(ARCameraSetup.DataKey, OnChannelUnsubscribed);
+		subscriber.Unsubscribe(ARCameraSetup.BaseKey + ":" + ARCameraSetup.DataKey, OnChannelUnsubscribed);
 	}
 }

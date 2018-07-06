@@ -3,11 +3,11 @@
 [Serializable]
 public class IntrinsicsParameters
 {
-	public int fx;
-	public int fy;
-	public int cx;
-	public int cy;
-	public int[] intrinsics;
+	public float fx;
+	public float fy;
+	public float cx;
+	public float cy;
+	public float[] intrinsics;
 	public int width;
 	public int height;
 }

@@ -20,7 +20,7 @@ public class Subscriber {
 
 	public void Unsubscribe(string channelName, Action<string> callback) {
 		this.redis.ChannelUnsubscribed += new ChannelUnsubscribedHandler(OnChannelUnsubscribed);
-		redis.SendCommand(RedisCommand.UNSUBSCRIBE, channelName);
+		this.redis.Messaging.Unsubscribe(channelName);
 	}
 
 

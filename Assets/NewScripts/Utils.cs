@@ -193,6 +193,29 @@ public static class Utils {
         return Encoding.UTF8.GetString(data);
     }
 
+    public static byte[] GRAY16ToRGB24(int width, int height, byte[] data) {
+        byte[] dataRGB = new byte[width * height * 3];
+        int cpt = 0;
+        for (int i = 0 ; i < data.Length ; i+=2) {
+            float ucolor = ((data[i+1] & 0xFF) * 255f) + (float) (data[i] & 0xFF);
+            byte color = (byte) (ucolor / 2000f * 255f);
+            dataRGB[cpt++] =  color;
+            dataRGB[cpt++] =  color;
+            dataRGB[cpt++] =  color;
+        }
+        return dataRGB;
+    }
+
+    public static Matrix4x4 FloatArrayToMatrix4x4(float[] array) {
+        Matrix4x4 mat = new Matrix4x4();
+        mat.SetRow(0, new Vector4(array[0], array[1], array[2], array[3]));
+        mat.SetRow(1, new Vector4(array[4], array[5], array[6], array[7]));
+        mat.SetRow(2, new Vector4(array[8], array[9], array[10], array[11]));
+        mat.SetRow(3, new Vector4(array[12], array[13], array[14], array[15]));
+
+        return mat;
+    }
+
     public static void Log(string objName, string message) {
         Debug.Log("[" + objName + "] " + message);
     }

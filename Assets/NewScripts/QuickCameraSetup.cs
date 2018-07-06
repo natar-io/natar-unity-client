@@ -10,14 +10,16 @@ public class QuickCameraSetup : MonoBehaviour {
 	private RedisConnection connection;
 	private bool isConnected = false;
 
+	private Camera setupCamera;
+
 	public ComponentState State = ComponentState.DISCONNECTED;
 	public CameraType Type = CameraType.RGB;
 	public string BaseKey = "camera0";
-	public string IntrinsicsKey = ":calibration";
+	public string IntrinsicsKey = "calibration";
 	public bool HasData = true;
 	public string DataKey = "";
 	public bool HasExtrinsics = false;
-	public string ExtrinsicsKey = ":extrinsincs";
+	public string ExtrinsicsKey = "extrinsics";
 
 	[HideInInspector]
 	public IntrinsicsParameters IntrinsicsParameters;
@@ -26,6 +28,7 @@ public class QuickCameraSetup : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		className = transform.gameObject.name;
+		setupCamera = this.GetComponent<Camera> ();
 		Connect ();
 	}
 
@@ -55,25 +58,53 @@ public class QuickCameraSetup : MonoBehaviour {
 	}
 
 	bool SetupIntrinsics () {
-		this.IntrinsicsParameters = Utils.RedisTryGetIntrinsics (connection.GetDataAccessProvider (), BaseKey + IntrinsicsKey);
+		this.IntrinsicsParameters = Utils.RedisTryGetIntrinsics (connection.GetDataAccessProvider (), BaseKey + ":" + IntrinsicsKey);
 		if (this.IntrinsicsParameters == null) {
 			Utils.Log (className, "Failed to load (and set) camera intrinsics parameters.");
 			State = ComponentState.CONNECTED;
 			return false;
 		}
-		Utils.Log (className, "Successfully loaded camera intrinsics parameters.");
+
+		float dx = this.IntrinsicsParameters.cx;
+		float dy = this.IntrinsicsParameters.cy;
+		float near = setupCamera.nearClipPlane;
+		float far = setupCamera.farClipPlane;
+
+		Matrix4x4 projectionMatrix = new Matrix4x4 ();
+		Vector4 row0 = new Vector4 ((2f * this.IntrinsicsParameters.fx / this.IntrinsicsParameters.width), 0f, -((float) this.IntrinsicsParameters.cx / (float) this.IntrinsicsParameters.width * 2f - 1f), 0f);
+		Vector4 row1 = new Vector4 (0f, 2f * this.IntrinsicsParameters.fy / this.IntrinsicsParameters.height, -((float) this.IntrinsicsParameters.cy / (float) this.IntrinsicsParameters.height * 2f - 1f),0f);
+		Vector4 row2 = new Vector4 (0, 0, -(far + near) / (far - near), -near * (1 + (far + near) / (far - near)));
+		Vector4 row3 = new Vector4 (0, 0, -1, 0);
+
+		projectionMatrix.SetRow (0, row0);
+		projectionMatrix.SetRow (1, row1);
+		projectionMatrix.SetRow (2, row2);
+		projectionMatrix.SetRow (3, row3);
+		setupCamera.projectionMatrix = projectionMatrix;
+
+		Utils.Log (className, "Successfully loaded and setup camera intrinsics parameters.");
 		State = ComponentState.WORKING;
 		return true;
 	}
 
 	bool SetupExtrinsics () {
-		this.ExtrinsicsParameters = Utils.RedisTryGetExtrinsics (connection.GetDataAccessProvider (), BaseKey + ExtrinsicsKey);
-		if (this.IntrinsicsParameters == null) {
+		this.ExtrinsicsParameters = Utils.RedisTryGetExtrinsics (connection.GetDataAccessProvider (), BaseKey + ":" + ExtrinsicsKey);
+		if (this.ExtrinsicsParameters == null) {
 			Utils.Log (className, "Failed to load (and set) camera extrinsics parameters.");
 			State = ComponentState.CONNECTED;
 			return false;
 		}
-		Utils.Log (className, "Successfully loaded camera extrinsics parameters.");
+
+		Matrix4x4 transform = new Matrix4x4 ();
+		transform.SetRow (0, new Vector4 (this.ExtrinsicsParameters.matrix[0], this.ExtrinsicsParameters.matrix[1], this.ExtrinsicsParameters.matrix[2], this.ExtrinsicsParameters.matrix[3]));
+		transform.SetRow (1, new Vector4 (this.ExtrinsicsParameters.matrix[4], this.ExtrinsicsParameters.matrix[5], this.ExtrinsicsParameters.matrix[6], this.ExtrinsicsParameters.matrix[7]));
+		transform.SetRow (2, new Vector4 (this.ExtrinsicsParameters.matrix[8], this.ExtrinsicsParameters.matrix[9], this.ExtrinsicsParameters.matrix[10], this.ExtrinsicsParameters.matrix[11]));
+		transform.SetRow (3, new Vector4 (this.ExtrinsicsParameters.matrix[12], this.ExtrinsicsParameters.matrix[13], this.ExtrinsicsParameters.matrix[14], this.ExtrinsicsParameters.matrix[15]));
+
+		this.transform.localPosition = Utils.ExtractTranslation ((Matrix4x4) transform);
+		this.transform.localRotation = Utils.ExtractRotation ((Matrix4x4) transform);
+
+		Utils.Log (className, "Successfully loaded camera and setup camera extrinsics parameters.");
 		State = ComponentState.WORKING;
 		return true;
 	}
@@ -90,27 +121,3 @@ public class QuickCameraSetup : MonoBehaviour {
 		}
 	}
 }
-
-#if UNITY_EDITOR
-[CustomEditor (typeof (QuickCameraSetup))]
-public class QuickCameraSetupEditor : Editor {
-
-	override public void OnInspectorGUI () {
-		QuickCameraSetup setup = target as QuickCameraSetup;
-		setup.Type = (CameraType) EditorGUILayout.EnumPopup ("Camera Type:", setup.Type);
-		setup.State = (ComponentState) EditorGUILayout.EnumPopup ("Internal State:", setup.State);
-		setup.BaseKey = EditorGUILayout.TextField ("Base camera key:", setup.BaseKey);
-		setup.IntrinsicsKey = EditorGUILayout.TextField ("Intrinsics parameters key:", setup.IntrinsicsKey);
-
-		setup.HasExtrinsics = setup.Type != CameraType.RGB;
-		if (setup.HasExtrinsics) {
-			setup.ExtrinsicsKey = EditorGUILayout.TextField ("Extrinsics parameters key:", setup.ExtrinsicsKey);
-		}
-
-		setup.HasData = (setup.Type == CameraType.RGB || setup.Type == CameraType.DEPTH);
-		if (setup.HasData) {
-			setup.DataKey = EditorGUILayout.TextField ("Data key:", setup.DataKey);
-		}
-	}
-}
-#endif

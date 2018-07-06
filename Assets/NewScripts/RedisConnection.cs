@@ -25,7 +25,6 @@ public class RedisConnection {
 			Debug.LogError(e.Message + ": Could not connect to redis server (" + IpAdress  + ":" + Port + ").");
 			return false;
 		}
-		ApplicationParameters.RedisClientCount++;
 		return true;
 	}
 

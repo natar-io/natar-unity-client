@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using TeamDev.Redis;
+using UnityEngine;
 
 [ExecuteInEditMode]
 public class SheetFollower : MonoBehaviour {
 	public ComponentState State = ComponentState.DISCONNECTED;
 	public Camera ARCamera;
-	public string Key = ":pose";
+	public string Key = "pose";
 
 	private string className;
 	private QuickCameraSetup ARCameraSetup;
@@ -41,28 +41,29 @@ public class SheetFollower : MonoBehaviour {
 
 	void Initialize () {
 		if (ARCameraSetup.State != ComponentState.WORKING) {
-			Utils.Log(className, "Failed to initialize " + this.GetType().Name + ". Attached camera is not working.");
+			Utils.Log (className, "Failed to initialize " + this.GetType ().Name + ". Attached camera is not working.");
 			return;
 		}
 
 		redis = connection.GetDataAccessProvider ();
 		if (Application.isPlaying) {
 			subscriber = new Subscriber (redis);
-			subscriber.Subscribe (ARCameraSetup.BaseKey + Key, OnPoseReceived);
+			subscriber.Subscribe (ARCameraSetup.BaseKey + ":" + this.Key, OnPoseReceived);
 		}
 
-		Utils.Log (className, "Successfully initialized "+ this.GetType().Name + ".");
+		Utils.Log (className, "Successfully initialized " + this.GetType ().Name + ".");
 		State = ComponentState.WORKING;
 	}
 
-	void OnPoseReceived(string channelName, byte[] message) {
+	void OnPoseReceived (string channelName, byte[] message) {
 		if (channelName != ARCameraSetup.BaseKey + Key) {
 			return;
 		}
-		string data = Utils.ByteToString (message);
-		pose = Utils.JSONToPose3D (data);
+		string poseString = Utils.ByteToString (message);
+		float[] poseArray = JsonUtility.FromJson<ExtrinsicsParameters> (poseString).matrix;
+		pose = Utils.FloatArrayToMatrix4x4(poseArray);
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		if (State != ComponentState.WORKING) {
@@ -76,8 +77,18 @@ public class SheetFollower : MonoBehaviour {
 			return;
 		}
 
+		if (!Application.isPlaying && redis != null) {
+			int commandId = redis.SendCommand (RedisCommand.GET, ARCameraSetup.BaseKey + ":" + this.Key);
+			byte[] poseData = Utils.RedisTryReadData (redis, commandId);
+			if (poseData != null) {
+				string poseString = Utils.ByteToString (poseData);
+				float[] poseArray = JsonUtility.FromJson<ExtrinsicsParameters> (poseString).matrix;
+				pose = Utils.FloatArrayToMatrix4x4(poseArray);
+			}
+		}
+
 		if (pose != null) {
-			Utils.Log(className, "Pose updated.");
+			Debug.Log("Updating pose");
 			this.transform.localPosition = Utils.ExtractTranslation ((Matrix4x4) pose);
 			this.transform.localRotation = Utils.ExtractRotation ((Matrix4x4) pose);
 		}
