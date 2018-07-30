@@ -21,7 +21,6 @@ public class SheetFollower : MonoBehaviour {
 
 	void Start () {
 		className = transform.gameObject.name;
-		ARCameraSetup = ARCamera.GetComponent<QuickCameraSetup> ();
 		Connect ();
 	}
 
@@ -40,6 +39,17 @@ public class SheetFollower : MonoBehaviour {
 	}
 
 	void Initialize () {
+		if (ARCamera == null) {
+			Utils.Log(className, "Camera component needs to be attached to this script. Please add a camera in the correct field and try again.");
+			return;
+		}
+
+		ARCameraSetup = ARCamera.GetComponent<QuickCameraSetup> ();
+		if (ARCameraSetup == null) {
+			Utils.Log(className, "Attached camera should contain the QuickCameraSetup script. Add the scripts to your camera and start again.");
+			return;
+		}
+		
 		if (ARCameraSetup.State != ComponentState.WORKING) {
 			Utils.Log (className, "Failed to initialize " + this.GetType ().Name + ". Attached camera is not working.");
 			return;
