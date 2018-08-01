@@ -66,7 +66,7 @@ public class SheetFollower : MonoBehaviour {
 	}
 
 	void OnPoseReceived (string channelName, byte[] message) {
-		if (channelName != ARCameraSetup.BaseKey + Key) {
+		if (channelName != ARCameraSetup.BaseKey + ":" + Key) {
 			return;
 		}
 		string poseString = Utils.ByteToString (message);
