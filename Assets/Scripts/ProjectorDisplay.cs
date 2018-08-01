@@ -9,7 +9,6 @@ public class ProjectorDisplay : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		Debug.Log("Number of connected display(s): " + Display.displays.Length);
 		displayNumber = Display.displays.Length;
 		if (Display.displays.Length > 1)
             Display.displays[1].Activate();

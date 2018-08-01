@@ -35,8 +35,6 @@ public class CameraVideoPlayer : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		className = transform.gameObject.name;
-		cameraImagePlayback = this.GetComponent<RawImage> ();
-		ARCameraSetup = ARCamera.GetComponent<QuickCameraSetup> ();
 		Connect ();
 	}
 
@@ -55,6 +53,22 @@ public class CameraVideoPlayer : MonoBehaviour {
 	}
 
 	void Initialize () {
+		cameraImagePlayback = this.GetComponent<RawImage> ();
+		if (cameraImagePlayback == null) {
+			Utils.Log(className, "Failed to initialize video playback. Requires Raw Image component.");
+			return;
+		}
+
+		if (ARCamera == null) {
+			Utils.Log(className, "A camera component needs to be attached to this script. Please add a camera in the correct field and try again.");
+			return;
+		}
+
+		ARCameraSetup = ARCamera.GetComponent<QuickCameraSetup> ();
+		if (ARCameraSetup == null) {
+			Utils.Log(className, "Attached camera should contain the QuickCameraSetup script. Add the scripts to your camera and start again.");
+			return;
+		}
 		if (ARCameraSetup.State != ComponentState.WORKING) {
 			Utils.Log(className, "Failed to initialize video playback. Attached camera is not working.");
 			return;
