@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 [ExecuteInEditMode]
+[RequireComponent(typeof(Camera))]
 public class QuickCameraSetup : MonoBehaviour {
 	private string className;
 

@@ -63,7 +63,7 @@ public class TableSetup : MonoBehaviour {
 	}
 
 	bool SetupExtrinsics () {
-		ExtrinsicsParameters ExtrinsicsParameters = Utils.RedisTryGetExtrinsics (connection.GetDataAccessProvider (), ARCameraSetup.BaseKey + Key);
+		ExtrinsicsParameters ExtrinsicsParameters = Utils.RedisTryGetExtrinsics (connection.GetDataAccessProvider (), ARCameraSetup.BaseKey + ":" + Key);
 		if (ExtrinsicsParameters == null) {
 			Utils.Log (className, "Failed to load (and set) table position.");
 			State = ComponentState.CONNECTED;

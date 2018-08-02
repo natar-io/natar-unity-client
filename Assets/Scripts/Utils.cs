@@ -82,6 +82,16 @@ public static class Utils {
         return null;
     }
 
+    public static Position RedisTryGetPosition (RedisDataAccessProvider redis, string key) {
+        int commandId = redis.SendCommand (RedisCommand.GET, key);
+        string positionData = Utils.RedisTryReadString (redis, commandId);
+        if (positionData != null) {
+            Position position = JsonUtility.FromJson<Position> (positionData);
+            return position;
+        }
+        return null;
+    }
+
     /// <summary>
     /// Tries to get 3D pose information saved in redis
     /// </summary>
