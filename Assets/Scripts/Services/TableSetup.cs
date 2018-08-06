@@ -71,13 +71,23 @@ public class TableSetup : MonoBehaviour {
 		}
 
 		currentTransform = new Matrix4x4 ();
-		currentTransform.SetRow (0, new Vector4 (ExtrinsicsParameters.matrix[0], ExtrinsicsParameters.matrix[1], ExtrinsicsParameters.matrix[2], ExtrinsicsParameters.matrix[3]));
-		currentTransform.SetRow (1, new Vector4 (ExtrinsicsParameters.matrix[4], ExtrinsicsParameters.matrix[5], ExtrinsicsParameters.matrix[6], ExtrinsicsParameters.matrix[7]));
-		currentTransform.SetRow (2, new Vector4 (ExtrinsicsParameters.matrix[8], ExtrinsicsParameters.matrix[9], ExtrinsicsParameters.matrix[10], ExtrinsicsParameters.matrix[11]));
-		currentTransform.SetRow (3, new Vector4 (ExtrinsicsParameters.matrix[12], ExtrinsicsParameters.matrix[13], ExtrinsicsParameters.matrix[14], ExtrinsicsParameters.matrix[15]));
+		currentTransform.SetRow (0, new Vector4 (-ExtrinsicsParameters.matrix[0], 	ExtrinsicsParameters.matrix[1], 	0 * ExtrinsicsParameters.matrix[2], ExtrinsicsParameters.matrix[3]));
+		currentTransform.SetRow (1, new Vector4 (ExtrinsicsParameters.matrix[4], 	ExtrinsicsParameters.matrix[5], 	ExtrinsicsParameters.matrix[6], ExtrinsicsParameters.matrix[7]));
+		currentTransform.SetRow (2, new Vector4 (0 * ExtrinsicsParameters.matrix[8], ExtrinsicsParameters.matrix[9], 	-ExtrinsicsParameters.matrix[10], ExtrinsicsParameters.matrix[11]));
+		currentTransform.SetRow (3, new Vector4 (ExtrinsicsParameters.matrix[12], 	ExtrinsicsParameters.matrix[13], 	ExtrinsicsParameters.matrix[14], ExtrinsicsParameters.matrix[15]));
+		/*
+		currentTransform.SetRow (0, new Vector4 (ExtrinsicsParameters.matrix[0], 	ExtrinsicsParameters.matrix[1], 	ExtrinsicsParameters.matrix[2], 	ExtrinsicsParameters.matrix[3]));
+		currentTransform.SetRow (1, new Vector4 (ExtrinsicsParameters.matrix[4], 	ExtrinsicsParameters.matrix[5], 	ExtrinsicsParameters.matrix[6], 	ExtrinsicsParameters.matrix[7]));
+		currentTransform.SetRow (2, new Vector4 (ExtrinsicsParameters.matrix[8], 	ExtrinsicsParameters.matrix[9], 	ExtrinsicsParameters.matrix[10], 	ExtrinsicsParameters.matrix[11]));
+		currentTransform.SetRow (3, new Vector4 (ExtrinsicsParameters.matrix[12], 	ExtrinsicsParameters.matrix[13], 	ExtrinsicsParameters.matrix[14],	ExtrinsicsParameters.matrix[15]));
+		*/
+		//Utils.Log(className, "TableSetup matrix " + currentTransform.ToString());
 
-		this.transform.localPosition = Utils.ExtractTranslation ((Matrix4x4) currentTransform);
-		this.transform.localRotation = Utils.ExtractRotation ((Matrix4x4) currentTransform);
+		this.transform.localRotation = Utils.ExtractRotation (currentTransform);
+		this.transform.localPosition = Utils.ExtractTranslation (currentTransform);
+		//this.transform.localScale = Utils.ExtractScale (currentTransform);
+
+		//Utils.Log(className, "LocaltoWorld " + this.transform.localToWorl	dMatrix.ToString());
 
 		Utils.Log (className, "Successfully loaded and setup table position.");
 		State = ComponentState.WORKING;
@@ -104,5 +114,13 @@ public class TableSetup : MonoBehaviour {
 
 	public Vector3 GetPosition() {
 		return this.transform.position;
+	}
+
+	public Matrix4x4 GetTransformMatrix() {
+		return currentTransform;
+	}
+
+	public Quaternion GetWorldRotation() {
+		return this.transform.rotation;
 	}
 }

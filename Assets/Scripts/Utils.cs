@@ -178,7 +178,7 @@ public static class Utils {
     /// <param name="matrix">the 4x4 Matrix</param>
     /// <returns></returns>
     public static Quaternion ExtractRotation (Matrix4x4 matrix) {
-        return Quaternion.LookRotation (matrix.GetColumn (2), matrix.GetColumn (1));
+        return Quaternion.LookRotation (matrix.GetColumn(2), matrix.GetColumn(1));
     }
 
     /// <summary>
@@ -187,7 +187,7 @@ public static class Utils {
     /// <param name="matrix">the 4x4 Matrix</param>
     /// <returns></returns>
     public static Vector3 ExtractTranslation (Matrix4x4 matrix) {
-        return matrix.GetColumn (3);
+        return matrix.GetColumn(3);
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ public static class Utils {
     /// <param name="matrix">the 4x4 Matrix</param>
     /// <returns></returns>
     public static Vector3 ExtractScale (Matrix4x4 matrix) {
-        return new Vector3 (matrix.GetColumn (0).magnitude, matrix.GetColumn (1).magnitude, matrix.GetColumn (2).magnitude);
+        return new Vector3 (matrix.GetColumn(0).magnitude, matrix.GetColumn(1).magnitude, matrix.GetColumn(2).magnitude);
     }
 
     public static String ByteToString(byte[] data) {
