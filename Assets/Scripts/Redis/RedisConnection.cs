@@ -11,6 +11,11 @@ public class RedisConnection {
 
 	private RedisDataAccessProvider redis;
 
+	public RedisConnection(string ip, int port) {
+		redis = new RedisDataAccessProvider();
+		redis.Configuration.Host = IpAdress;
+		redis.Configuration.Port = port;
+	}
 	public RedisConnection () {
 		redis = new RedisDataAccessProvider();
 		redis.Configuration.Host = IpAdress;
