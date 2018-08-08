@@ -107,20 +107,4 @@ public class TableSetup : MonoBehaviour {
 			return;
 		}
 	}
-
-	public Vector3 GetNormal() {
-		return this.transform.forward;
-	}
-
-	public Vector3 GetPosition() {
-		return this.transform.position;
-	}
-
-	public Matrix4x4 GetTransformMatrix() {
-		return currentTransform;
-	}
-
-	public Quaternion GetWorldRotation() {
-		return this.transform.rotation;
-	}
 }

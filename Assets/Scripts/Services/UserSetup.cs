@@ -9,15 +9,15 @@ public class UserSetup : MonoBehaviour {
 	public ComponentState State = ComponentState.DISCONNECTED;
 	public string Key = "user:position";
 
-	private string className;
+	private string objectName;
 	private RedisDataAccessProvider redis;
 	private RedisConnection connection;
 	private bool isConnected = false;
 
-	public GameObject goTable;
+	public GameObject tableObject;
 
 	void Start () {
-		className = transform.gameObject.name;
+		objectName = transform.gameObject.name;
 		Connect ();
 	}
 
@@ -26,7 +26,7 @@ public class UserSetup : MonoBehaviour {
 			connection = new RedisConnection ();
 		}
 		isConnected = connection.TryConnection ();
-		Utils.Log (className, (isConnected ? "Connection succeed." : "Connection failed."));
+		Utils.Log (objectName, (isConnected ? "Connection succeed." : "Connection failed."));
 		if (!isConnected) {
 			State = ComponentState.DISCONNECTED;
 			return;
@@ -38,24 +38,28 @@ public class UserSetup : MonoBehaviour {
 	void Initialize () {
 		redis = connection.GetDataAccessProvider ();
 		if (SetupPosition()) {
-			Utils.Log (className, "Successfully initialized " + this.GetType ().Name + ".");
+			Utils.Log (objectName, "Successfully initialized " + this.GetType().Name + ".");
 			State = ComponentState.WORKING;
 		}
 	}
 
 	bool SetupPosition () {
-		Position pos = Utils.RedisTryGetPosition(connection.GetDataAccessProvider(), Key);
-		if (pos == null) {
-			Utils.Log(className, "Failed to load user position.");
+		if (tableObject == null) {
+			Utils.Log(objectName, "Table gameobject needs to be attached to simulate user point of view because it depends on it.");
+			return false;
+		}
+
+		Position userPosition = Utils.RedisTryGetPosition(connection.GetDataAccessProvider(), Key);
+		if (userPosition == null) {
+			Utils.Log(objectName, "Failed to load user position.");
 			State = ComponentState.CONNECTED;
 			return false;
 		}
 
-		TableSetup table = goTable.GetComponent<TableSetup>();
-		Vector3 position = new Vector3(pos.x, pos.y, pos.z);
-		this.transform.position = table.GetPosition() - position;
-		this.transform.LookAt(table.GetPosition(), new Vector3(0, -1, 0));
-		Utils.Log (className, "Successfully loaded and setup user position.");
+		Vector3 position = new Vector3(userPosition.x, userPosition.y, userPosition.z);
+		this.transform.position = tableObject.transform.position - position;
+		this.transform.LookAt(tableObject.transform.position);
+		Utils.Log (objectName, "Successfully loaded and setup user position.");
 		State = ComponentState.WORKING;
 		return true;
 	}
@@ -64,10 +68,10 @@ public class UserSetup : MonoBehaviour {
 	void Update () {
 		if (State != ComponentState.WORKING) {
 			if (State != ComponentState.CONNECTED) {
-				Utils.Log (className, "Retrying to connect to the redis server.");
+				Utils.Log (objectName, "Retrying to connect to the redis server.");
 				Connect ();
 			} else {
-				Utils.Log (className, "Retrying to initialize user position.");
+				Utils.Log (objectName, "Retrying to initialize user position.");
 				Initialize ();
 			}
 			return;
