@@ -68,15 +68,15 @@ public class SetupIntrinsics : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        switch (state) {
-            case ComponentState.DISCONNECTED:
-                Connect();
-                break;
-            case ComponentState.CONNECTED:
-                Initialize();
-                break;
-            default:
-                break;
-        }
+		switch (state) {
+			case ComponentState.DISCONNECTED:
+				Connect();
+				break;
+			case ComponentState.CONNECTED:
+				Initialize();
+				break;
+			default:
+				break;
+		}
 	}
 }

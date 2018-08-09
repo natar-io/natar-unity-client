@@ -8,10 +8,10 @@ using UnityEngine;
 public class SetupExtrinsics : MonoBehaviour {
 	[Tooltip("The redis key where to look for extrinsics parameters.")]
 	public string Key = "extrinsics";
-	[Tooltip("If set to true, every update loop will update object extrinsics parameters.")]
-	public bool ShouldUpdateExtrinsics = false;
-	[Tooltip("If set to true, a rotation will be applied to project Y axis onto Z axis.")]
-	public bool RotateYToZ = false;
+	[Tooltip("If set to true, object extrinsics parameters are going to be updated in every update loop. This is used for tracked object where the pose 3d is constantly changing.")]
+	public bool KeepTracking = false;
+	[Tooltip("If set to true, a scale of -1 in Y will be applied to the object")]
+	public bool ReverseY = true;
 	
 	private RedisConnection connection;
 	private bool isConnected = false;
@@ -53,16 +53,14 @@ public class SetupExtrinsics : MonoBehaviour {
 		}
 
 		Matrix4x4 transform = new Matrix4x4();
-		transform.SetRow(0, new Vector4(extrinsicsParameters.matrix[0], extrinsicsParameters.matrix[1], extrinsicsParameters.matrix[2], extrinsicsParameters.matrix[3]));
-		transform.SetRow(1, new Vector4(extrinsicsParameters.matrix[4], extrinsicsParameters.matrix[5], extrinsicsParameters.matrix[6], extrinsicsParameters.matrix[7]));
-		transform.SetRow(2, new Vector4(extrinsicsParameters.matrix[8], extrinsicsParameters.matrix[9], extrinsicsParameters.matrix[10], extrinsicsParameters.matrix[11]));
-		transform.SetRow(3, new Vector4(extrinsicsParameters.matrix[12], extrinsicsParameters.matrix[13], extrinsicsParameters.matrix[14], extrinsicsParameters.matrix[15]));
+		transform.SetRow(0, new Vector4(extrinsicsParameters.matrix[0],		extrinsicsParameters.matrix[1],		extrinsicsParameters.matrix[2],		extrinsicsParameters.matrix[3]));
+		transform.SetRow(1, new Vector4(extrinsicsParameters.matrix[4],		extrinsicsParameters.matrix[5],		extrinsicsParameters.matrix[6],		extrinsicsParameters.matrix[7]));
+		transform.SetRow(2, new Vector4(extrinsicsParameters.matrix[8],		extrinsicsParameters.matrix[9],		extrinsicsParameters.matrix[10],	extrinsicsParameters.matrix[11]));
+		transform.SetRow(3, new Vector4(extrinsicsParameters.matrix[12],	extrinsicsParameters.matrix[13],	extrinsicsParameters.matrix[14],	extrinsicsParameters.matrix[15]));
 
-		if (RotateYToZ) {
-			transform.m00 = -1 * transform.m00;
-			transform.m02 = 0;
-			transform.m20 = 0;
-			transform.m22 = -1 * transform.m22;
+		if (ReverseY) {
+			Matrix4x4 scale = Matrix4x4.Scale(new Vector3(1, -1, 1));
+			transform = scale * transform;
 		}
 
 		this.transform.localPosition = Utils.ExtractTranslation((Matrix4x4)transform);
@@ -75,7 +73,7 @@ public class SetupExtrinsics : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (!ShouldUpdateExtrinsics && state == ComponentState.WORKING) {
+		if (!KeepTracking && state == ComponentState.WORKING) {
 			return;
 		}
 

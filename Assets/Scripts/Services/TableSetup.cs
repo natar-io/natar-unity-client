@@ -103,7 +103,8 @@ public class TableSetup : MonoBehaviour {
 		tableTexture.LoadRawTextureData (imageData);
 		tableTexture.Apply();
 
-		this.GetComponent<Renderer>().sharedMaterial.mainTexture = tableTexture;
+		GameObject tableObject = this.transform.GetChild(0).gameObject;
+		tableObject.GetComponent<Renderer>().sharedMaterial.mainTexture = tableTexture;
 		return true;
 	}
 
@@ -116,10 +117,13 @@ public class TableSetup : MonoBehaviour {
 		}
 
 		currentTransform = new Matrix4x4 ();
-		currentTransform.SetRow (0, new Vector4 (-ExtrinsicsParameters.matrix[0], 	ExtrinsicsParameters.matrix[1], 	0 * ExtrinsicsParameters.matrix[2], ExtrinsicsParameters.matrix[3]));
-		currentTransform.SetRow (1, new Vector4 (ExtrinsicsParameters.matrix[4], 	ExtrinsicsParameters.matrix[5], 	ExtrinsicsParameters.matrix[6], ExtrinsicsParameters.matrix[7]));
-		currentTransform.SetRow (2, new Vector4 (0 * ExtrinsicsParameters.matrix[8], ExtrinsicsParameters.matrix[9], 	-ExtrinsicsParameters.matrix[10], ExtrinsicsParameters.matrix[11]));
-		currentTransform.SetRow (3, new Vector4 (ExtrinsicsParameters.matrix[12], 	ExtrinsicsParameters.matrix[13], 	ExtrinsicsParameters.matrix[14], ExtrinsicsParameters.matrix[15]));
+		currentTransform.SetRow (0, new Vector4 (ExtrinsicsParameters.matrix[0], 	ExtrinsicsParameters.matrix[1], 	ExtrinsicsParameters.matrix[2],		ExtrinsicsParameters.matrix[3]));
+		currentTransform.SetRow (1, new Vector4 (ExtrinsicsParameters.matrix[4], 	ExtrinsicsParameters.matrix[5], 	ExtrinsicsParameters.matrix[6],		ExtrinsicsParameters.matrix[7]));
+		currentTransform.SetRow (2, new Vector4 (ExtrinsicsParameters.matrix[8],	ExtrinsicsParameters.matrix[9], 	ExtrinsicsParameters.matrix[10],	ExtrinsicsParameters.matrix[11]));
+		currentTransform.SetRow (3, new Vector4 (ExtrinsicsParameters.matrix[12], 	ExtrinsicsParameters.matrix[13], 	ExtrinsicsParameters.matrix[14],	ExtrinsicsParameters.matrix[15]));
+
+		Matrix4x4 scale = Matrix4x4.Scale(new Vector3(1, -1, 1));
+		currentTransform = scale * currentTransform;
 	
 		this.transform.localRotation = Utils.ExtractRotation (currentTransform);
 		this.transform.localPosition = Utils.ExtractTranslation (currentTransform);

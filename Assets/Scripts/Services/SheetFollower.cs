@@ -94,13 +94,9 @@ public class SheetFollower : MonoBehaviour {
 				string poseString = Utils.ByteToString (poseData);
 				float[] poseArray = JsonUtility.FromJson<ExtrinsicsParameters> (poseString).matrix;
 				pose = Utils.FloatArrayToMatrix4x4(poseArray);
-				// Reverse y axis
-				/*
-				pose.m00 = -pose.m00;
-				pose.m02 = 0;
-				pose.m20 = 0;
-				pose.m22 = -pose.m22;
-				*/
+
+				Matrix4x4 scale =  Matrix4x4.Scale(new Vector3(1, -1, 1));
+				pose  = scale * pose;
 			}
 		}
 
@@ -111,33 +107,3 @@ public class SheetFollower : MonoBehaviour {
 		}
 	}
 }
-
-/*
-		if (State != ComponentState.WORKING) {
-			if (State != ComponentState.CONNECTED) {
-				Utils.Log (className, "Retrying to connect to the redis server.");
-				Connect ();
-			} else {
-				Utils.Log (className, "Retrying to initialize sheet following.");
-				Initialize ();
-			}
-			return;
-		}
-
-		if (!Application.isPlaying && redis != null) {
-			ExtrinsicsParameters ExtrinsicsParameters = Utils.RedisTryGetExtrinsics(redis, ARCameraSetup.BaseKey + ":" + this.Key);
-			if (ExtrinsicsParameters == null) {
-				return;
-			}
-			pose.SetRow (0, new Vector4 (-ExtrinsicsParameters.matrix[0], 	ExtrinsicsParameters.matrix[1], 	0 * ExtrinsicsParameters.matrix[2], ExtrinsicsParameters.matrix[3]));
-			pose.SetRow (1, new Vector4 (ExtrinsicsParameters.matrix[4], 	ExtrinsicsParameters.matrix[5], 	ExtrinsicsParameters.matrix[6], ExtrinsicsParameters.matrix[7]));
-			pose.SetRow (2, new Vector4 (0 * ExtrinsicsParameters.matrix[8], ExtrinsicsParameters.matrix[9], 	-ExtrinsicsParameters.matrix[10], ExtrinsicsParameters.matrix[11]));
-			pose.SetRow (3, new Vector4 (ExtrinsicsParameters.matrix[12], 	ExtrinsicsParameters.matrix[13], 	ExtrinsicsParameters.matrix[14], ExtrinsicsParameters.matrix[15]));
-		}
-
-		if (pose != null) {
-			Debug.Log("Updating pose");
-			this.transform.localRotation = Utils.ExtractRotation ((Matrix4x4) pose);
-			this.transform.localPosition = Utils.ExtractTranslation ((Matrix4x4) pose);
-		} 
-*/
