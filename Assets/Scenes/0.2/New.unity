@@ -113,6 +113,145 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &389033018
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 389033022}
+  - component: {fileID: 389033021}
+  - component: {fileID: 389033020}
+  - component: {fileID: 389033019}
+  m_Layer: 0
+  m_Name: Projector0
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &389033019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 389033018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0498681075861940867d18a73173d66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Key: extrinsics
+  KeepTracking: 0
+  ReverseY: 1
+  objectName: Projector0
+  state: 2
+  ExtrinsicsParameters:
+    matrix:
+    - -0.9999616
+    - 0.0047092093
+    - 0.008956291
+    - -25.005047
+    - -0.00015643546
+    - -0.89323205
+    - 0.44969022
+    - -65.84964
+    - 0.0101126395
+    - 0.44966188
+    - 0.8931985
+    - -66.905815
+    - 0
+    - 0
+    - 0
+    - 1
+--- !u!114 &389033020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 389033018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 796e6405d143445518b0bd3281fe059c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Key: calibration
+  objectName: Projector0
+  state: 2
+  IntrinsicsParameters:
+    fx: 1070
+    fy: 1070
+    cx: 640
+    cy: 5
+    intrinsics:
+    - 1070
+    - 0
+    - 640
+    - 0
+    - 0
+    - 1070
+    - 5
+    - 0
+    - 0
+    - 0
+    - 1
+    - 0
+    - 0
+    - 0
+    - 0
+    - 1
+    width: 1280
+    height: 800
+--- !u!20 &389033021
+Camera:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 389033018}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &389033022
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 389033018}
+  m_LocalRotation: {x: 0.23108484, y: 0.0049008657, z: -0.0012559972, w: 0.9729205}
+  m_LocalPosition: {x: -25.005047, y: 65.84964, z: -66.905815}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &925446091
 GameObject:
   m_ObjectHideFlags: 0
@@ -144,6 +283,30 @@ MonoBehaviour:
   Key: calibration
   objectName: Camera0
   state: 2
+  IntrinsicsParameters:
+    fx: 519
+    fy: 519
+    cx: 320
+    cy: 240
+    intrinsics:
+    - 519
+    - 0
+    - 320
+    - 0
+    - 0
+    - 519
+    - 240
+    - 0
+    - 0
+    - 0
+    - 1
+    - 0
+    - 0
+    - 0
+    - 0
+    - 1
+    width: 640
+    height: 480
 --- !u!20 &925446093
 Camera:
   m_ObjectHideFlags: 0
@@ -187,7 +350,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 925446091}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1410.8367, y: -2294.8625, z: 2405.887}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

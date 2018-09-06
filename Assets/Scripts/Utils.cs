@@ -226,7 +226,21 @@ public static class Utils {
         return mat;
     }
 
-    public static void Log(string objName, string message) {
-        Debug.Log("[" + objName + "] " + message);
+    public static void Log(string objName, string message, int logLevel = 0) {
+        String content = "[" + objName + "] " + message;
+        switch(logLevel) {
+            case 0:
+                Debug.Log(content);
+                break;
+            case 1:
+                Debug.LogWarning(content);
+                break;
+            case 2:
+                Debug.LogError(content);
+                break;
+            default:
+                Debug.Log(content);
+                break;
+        }
     }
 }
