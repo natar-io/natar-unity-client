@@ -8,44 +8,118 @@ using UnityEditor;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
+/// <summary>
+/// CameraPlayback provides the base logic to deal with real time camera frames obtained from a Nectar service.
+/// It also provides a simple configuration menu and a simple visualisation of the obtained frames.
+/// </summary>
 [ExecuteInEditMode]
 public class CameraPlayback : MonoBehaviour, NectarService {
+	/// <summary>
+	/// The camera from which frames will be acquired.
+	/// This property is configurable in editor
+	/// </summary>
 	[Tooltip("The camera to which the player should get frames from.")]
 	public Camera ARCamera;
 
-	private RedisDataAccessProvider redis;
+	/// <summary>
+	/// Data structure holding redis connection properties such as Host, Port, Timeout and more.
+	/// </summary>
+	/// 
 	private RedisConnection connection;
+
+	/// <summary>
+	/// Redis connection object containing the connection socket. 
+	/// </summary>
+	private RedisDataAccessProvider redis;
+	
+	/// <summary>
+	/// Redis subscriber 
+	/// </summary>
 	private Subscriber subscriber;
+	
+	/// <summary>
+	/// State boolean indicating whether or not the script is connected to Redis.
+	/// </summary>
 	private bool isConnected = false;
 
-	// Fake public variables (not shown in the inspector)
+	/// <summary>
+	/// Fake public variable (not accessible from the editor) getting the current object name to use it as a base key to get data in Redis
+	/// </summary>
 	public string objectName;
+	
+	/// <summary>
+	/// The current state of the component. Can be DISCONNECTED, CONNECTED or WORKING.
+	/// DISCONNECTED - When the component fails to connect to Redis.
+	/// CONNECTED - When the component is successfully connected to Redis but failed to initialize its data.
+	/// The initialization can fail for several reasons. Most common one is that the data in Redis are not available due to the lack of the service providing them.
+	/// WORKING - When the component is connected and initializated.
+	/// </summary>
 	public ComponentState state = ComponentState.DISCONNECTED;
 	
+	/// <summary>
+	/// State boolean used to override the key (which is by default the component name) when neeeded.
+	/// </summary>
 	[Tooltip("Usually the key is based on the component name however by checking this property you have the ability to override the predefined key.")]
 	public bool OverrideKey = false;
+
+	/// <summary>
+	/// String key used to get data from Redis.
+	/// </summary>
 	[Tooltip("The redis key to get frame data from.")]
 	public string Key;
 
+	/// <summary>
+	/// Camera frame width
+	/// </summary>
 	private int imageWidth;
+
+	/// <summary>
+	/// Camera frame height
+	/// </summary>
 	private int imageHeight;
+
+	/// <summary>
+	/// Camera frame channels
+	/// </summary>
 	private int imageChannels;
 	
+	/// <summary>
+	/// The Unity 2D Texture storing the current frame.
+	/// </summary>
 	public Texture2D videoTexture;
+
+	/// <summary>
+	/// Byte array holding the current frame data
+	/// </summary>
 	private byte[] imageData;
+
+	/// <summary>
+	/// State boolean indicating whether a new image has been uploaded or not.
+	/// </summary>
 	private bool imageDataUpdated = false;
+
+	/// <summary>
+	/// The previous frame informations (frameCount, timestamp)
+	/// </summary>
 	private ImageInformations previousImage;
+
+	/// <summary>
+	/// The current frame informations (frameCount, timestamp)
+	/// </summary>
 	private ImageInformations currentImage;
 
-	// Use this for initialization
+	/// <summary>
+	/// Start method called by Unity main loop.
+	/// This function is used for initialization
+	/// </summary>
 	void Start () {
 		Connect();
 	}
 
-	/* Connect
-	*  This function creates a new connection to Redis and tries to join it.
-	*  If succeed, this function will call the initialization fuction. 
-	*/
+	/// <summary>
+	/// Creates a new connection to Redis and tries to connect.
+	/// If succeed, this function will call the initialization fuction.  
+	/// </summary>
 	public void Connect() {
 		// Since this has to work in editor, we are getting component informations each time we try to connect/init in case they changed
 		objectName = transform.gameObject.name;
@@ -62,10 +136,10 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 		}
 	}
 
-	/* Initiliaze
-	 * This function initialize everything the script/component needs to work.
-	 * If succeed, the component can be used
-	 */
+	/// <summary>
+	/// Initialize and test everything the component need to work.
+	/// If succeed, the component is ready to be used.
+	/// </summary>
 	public void Initialize() {
 		// Since this has to work in editor, we are getting component informations each time we try to connect/init in case they changed
 		objectName = transform.gameObject.name;
@@ -92,11 +166,12 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 		subscriber.Subscribe(Key, OnImageReceived);
 		
 	}
-
-	/* Load
-	 * This function load data from Redis. If loading fails, it asks Nectar to start the desired service.
-	 * Returns true if you data are succesfully loaded
-	 */
+	
+	/// <summary>
+	/// This function load data from Redis. If loading fails, it asks Nectar to start the desired service. 
+	/// Returns true if you data are succesfully loaded
+	/// </summary>
+	/// <returns>true if the service is up and the data available, false else.</returns>
 	public bool Load() {
 		//TODO: Check here if Nectar AND the service are up otherwise when the service is down and we click start, we're screwed.
 		int commandId =  redis.SendCommand (RedisCommand.GET, Key + ":width");
@@ -122,6 +197,11 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 		return true;
 	}
 
+	/// <summary>
+	/// Callback method called by the Redis Subscriber when image data are published in the listened channel.
+	/// </summary>
+	/// <param name="channelName">The channel where data were published</param>
+	/// <param name="message">The published data</param>
 	void OnImageReceived (string channelName, byte[] message) {
 		string rawImageInfos = Utils.ByteToString (message);
 		currentImage = JsonUtility.FromJson<ImageInformations> (rawImageInfos);
@@ -131,7 +211,10 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 		}
 	}
 	
-	// Update is called once per frame
+	/// <summary>
+	/// Update method called by Unity main loop.
+	/// This function is called exactly once per frame.
+	/// </summary>
 	void Update () {	
 		if (this.state != ComponentState.WORKING) {
 			switch (state) {
@@ -144,8 +227,15 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 			default:
 				break;
 			}
+			return;
 		}
-		else if (imageDataUpdated) {
+		
+		if (redis == null) {
+			Connect();
+			return;
+		}
+
+		if (imageDataUpdated) {
 			// Get image data
 			int commandId = redis.SendCommand (RedisCommand.GET, Key);
 			imageData = Utils.RedisTryReadData (redis, commandId);
@@ -165,6 +255,9 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 	}
 }
 
+/// <summary>
+/// Unity Editor custom class overriding Unity Editor default layout to provide more friendly and comprehensive GUI for the user.
+/// </summary>
 [CustomEditor(typeof(CameraPlayback))]
 public class CameraPlaybackEditor : Editor 
 {
