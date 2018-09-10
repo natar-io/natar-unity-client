@@ -227,7 +227,7 @@ public static class Utils {
     }
 
     public static void Log(string objName, string message, int logLevel = 0) {
-        String content = "[" + objName + "] " + message;
+        string content = "[" + objName + "] " + message;
         switch(logLevel) {
             case 0:
                 Debug.Log(content);

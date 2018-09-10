@@ -7,7 +7,7 @@ using TeamDev.Redis;
 
 [ExecuteInEditMode]
 [RequireComponent(typeof(Camera))]
-public class SetupIntrinsics : MonoBehaviour {
+public class SetupIntrinsics : MonoBehaviour, NectarService {
 	public string Key = "intrisics";
 
 	private RedisConnection connection;
@@ -54,7 +54,7 @@ public class SetupIntrinsics : MonoBehaviour {
 		// Since this has to work in editor, we are getting component informations each time we try to connect/init in case they changed
 		objectName = transform.gameObject.name;
 		bool isLoaded = Load();
-		Utils.Log(objectName, this.GetType() + ": " + (isLoaded ? "succeed" : "failed") + ".");
+		Utils.Log(objectName, this.GetType() + ": " + (isLoaded ? "succeed" : "failed") + ".", (isLoaded ? 0 : 1));
 		state = isLoaded ? ComponentState.WORKING : ComponentState.CONNECTED;
 	}
 
@@ -136,7 +136,7 @@ public class SetupIntrinsicsEditor : Editor
 		GUI.enabled = false;
 		script.state = (ComponentState)EditorGUILayout.EnumPopup("Internal state", script.state);
 		GUI.enabled = true;
-		if (GUILayout.Button("Restart")) {
+		if (GUILayout.Button("Reinitialize")) {
 			script.Connect();
 		}
 		GUILayout.EndHorizontal();

@@ -6,24 +6,21 @@ using UnityEngine.Networking;
 using TeamDev.Redis;
 
 [ExecuteInEditMode]
-[RequireComponent(typeof(Camera))]
-public class SetupExtrinsics : MonoBehaviour {
-	[Tooltip("The redis key where to look for extrinsics parameters.")]
+public class SetupExtrinsics : MonoBehaviour, NectarService {
 	public string Key = "extrinsics";
-	[Tooltip("If set to true, object extrinsics parameters are going to be updated in every update loop. This is used for tracked object where the pose 3d is constantly changing.")]
-	public bool KeepTracking = false;
 	[Tooltip("If set to true, a scale of -1 in Y will be applied to the object")]
 	public bool ReverseY = true;
+	[Tooltip("If set to true, object extrinsics parameters are going to be updated in every update loop. This is used for tracked object where the pose 3d is constantly changing.")]
+	public bool KeepTracking = false;
 
 	private RedisConnection connection;
 	private RedisDataAccessProvider redis;
+	private Subscriber subscriber;
 
 	// Fake public variables (not shown in the inspector)
 	public string objectName;
 	public ComponentState state = ComponentState.DISCONNECTED;
 	public ExtrinsicsParameters ExtrinsicsParameters;
-
-    private Camera targetCamera;
 
 	// Use this for initialization
 	void Start () {
@@ -37,7 +34,6 @@ public class SetupExtrinsics : MonoBehaviour {
 	public void Connect() {
 		// Since this has to work in editor, we are getting component informations each time we try to connect/init in case they changed
 		objectName = transform.gameObject.name;
-		targetCamera = this.GetComponent<Camera>();
 
 		if (connection == null) {
 			connection = new RedisConnection();
@@ -58,9 +54,18 @@ public class SetupExtrinsics : MonoBehaviour {
 	public void Initialize() {
 		// Since this has to work in editor, we are getting component informations each time we try to connect/init in case they changed
 		objectName = transform.gameObject.name;
-		bool isLoaded = Load();
-		Utils.Log(objectName, this.GetType() + ": " + (isLoaded ? "succeed" : "failed") + ".");
-		state = isLoaded ? ComponentState.WORKING : ComponentState.CONNECTED;
+		
+		if (KeepTracking) {
+			// Before that ask nectar is the service is up and running
+			subscriber = new Subscriber(redis);
+			subscriber.Subscribe(objectName.ToLower() + ":" + Key, OnExtrinsicsReceived);
+			state = ComponentState.WORKING;
+		}
+		else {
+			bool isLoaded = Load();
+			Utils.Log(objectName, this.GetType() + ": " + (isLoaded ? "succeed" : "failed") + ".", (isLoaded ? 0 : 1));
+			state = isLoaded ? ComponentState.WORKING : ComponentState.CONNECTED;
+		}
 	}
 
 	/* Load
@@ -82,12 +87,21 @@ public class SetupExtrinsics : MonoBehaviour {
 		return true;
 	}
 
+	void OnExtrinsicsReceived(string channelName, byte[] message) {
+		string extrinsics = Utils.ByteToString(message);
+		ExtrinsicsParameters = JsonUtility.FromJson<ExtrinsicsParameters>(extrinsics);
+	}
+
 	void UpdateExtrinsics() {
+		Matrix4x4 transform = new Matrix4x4();
+		transform = Utils.FloatArrayToMatrix4x4(ExtrinsicsParameters.matrix);
+		/*
 		Matrix4x4 transform = new Matrix4x4();
 		transform.SetRow(0, new Vector4(ExtrinsicsParameters.matrix[0],		ExtrinsicsParameters.matrix[1],		ExtrinsicsParameters.matrix[2],		ExtrinsicsParameters.matrix[3]));
 		transform.SetRow(1, new Vector4(ExtrinsicsParameters.matrix[4],		ExtrinsicsParameters.matrix[5],		ExtrinsicsParameters.matrix[6],		ExtrinsicsParameters.matrix[7]));
 		transform.SetRow(2, new Vector4(ExtrinsicsParameters.matrix[8],		ExtrinsicsParameters.matrix[9],		ExtrinsicsParameters.matrix[10],	ExtrinsicsParameters.matrix[11]));
 		transform.SetRow(3, new Vector4(ExtrinsicsParameters.matrix[12],	ExtrinsicsParameters.matrix[13],	ExtrinsicsParameters.matrix[14],	ExtrinsicsParameters.matrix[15]));
+		*/
 
 		if (ReverseY) {
 			Matrix4x4 scale = Matrix4x4.Scale(new Vector3(1, -1, 1));
@@ -107,7 +121,13 @@ public class SetupExtrinsics : MonoBehaviour {
 		if (!KeepTracking && state == ComponentState.WORKING) {
 			return;
 		}
-		
+
+		// If we keep tracking extrinsics updates, then update it everytime
+		if (KeepTracking && state == ComponentState.WORKING) {
+			UpdateExtrinsics();
+			return;
+		} 
+
 		switch (state) {
 			case ComponentState.DISCONNECTED:
 				Connect();
@@ -124,6 +144,16 @@ public class SetupExtrinsics : MonoBehaviour {
 [CustomEditor(typeof(SetupExtrinsics))]
 public class SetupExtrinsicsEditor : Editor 
 {
+	//Creating serialized properties so we can retrieve variable attributes without having to recreate them in the custom editor
+	SerializedProperty reverseY = null;
+	SerializedProperty keepTracking = null;
+
+	private void OnEnable()
+	{
+		reverseY = serializedObject.FindProperty("ReverseY");
+		keepTracking = serializedObject.FindProperty("KeepTracking");
+	}
+
     public override void OnInspectorGUI()
     {
         SetupExtrinsics script = (SetupExtrinsics)target;
@@ -139,12 +169,12 @@ public class SetupExtrinsicsEditor : Editor
 		script.Key = EditorGUILayout.TextField (script.Key);
 		GUILayout.EndHorizontal();
 
-		// Control layout : [current state] [restart button] [update button]
+		// Control layout : [current state] [restart button]
 		GUILayout.BeginHorizontal();
 		GUI.enabled = false;
 		script.state = (ComponentState)EditorGUILayout.EnumPopup("Internal state", script.state);
 		GUI.enabled = true;
-		if (GUILayout.Button("Restart")) {
+		if (GUILayout.Button("Reinitialize")) {
 			script.Connect();
 		}
 		GUILayout.EndHorizontal();
@@ -160,5 +190,13 @@ public class SetupExtrinsicsEditor : Editor
 			}
 		}
 		GUILayout.EndHorizontal();
+
+		// Script options
+		GUILayout.BeginHorizontal();
+		EditorGUILayout.PropertyField(reverseY);
+		EditorGUILayout.PropertyField(keepTracking);
+		GUILayout.EndHorizontal();
+
+		serializedObject.ApplyModifiedProperties();
     }
 }
