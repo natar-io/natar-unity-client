@@ -243,4 +243,55 @@ public static class Utils {
                 break;
         }
     }
+
+    public static Texture2D GetImageAsTexture(RedisDataAccessProvider redis, string key) {
+        int commandId =  redis.SendCommand (RedisCommand.GET, key + ":width");
+		int? width = Utils.RedisTryReadInt(redis, commandId);
+
+		commandId =  redis.SendCommand (RedisCommand.GET, key + ":height");
+		int? height = Utils.RedisTryReadInt(redis, commandId);
+
+		commandId =  redis.SendCommand (RedisCommand.GET, key + ":channels");
+		int? channels = Utils.RedisTryReadInt(redis, commandId);
+
+        if (width == null || height == null || channels == null)
+            return null;
+        
+        Texture2D texture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false, false);
+        byte[] imageData = new byte[(int)width * (int) height * (int)channels];
+
+        return GetImageIntoPreallocatedTexture(redis, key, texture, imageData, (int)width, (int)height, (int)channels);
+
+        /*
+        commandId = redis.SendCommand (RedisCommand.GET, key);
+        // 70-90% of the update time is spent here.
+        imageData = Utils.RedisTryReadData (redis, commandId);
+        if (imageData == null)
+            return null;
+        
+        if ((int)channels == 2) {
+            imageData = Utils.GRAY16ToRGB24((int)width, (int)height, imageData);
+        }
+
+        texture.LoadRawTextureData(imageData);
+        texture.Apply();    
+        return texture;
+        */
+    }
+
+    public static Texture2D GetImageIntoPreallocatedTexture(RedisDataAccessProvider redis, string key, Texture2D texture, byte[] textureRaw, int width, int height, int channels = 3) {
+        int commandId = redis.SendCommand(RedisCommand.GET, key);
+        // 70-90% of the time is spent here
+        textureRaw = Utils.RedisTryReadData(redis, commandId);
+        if (textureRaw == null)
+            return null;
+        
+        if (channels == 2) {
+            textureRaw = Utils.GRAY16ToRGB24((int)width, (int)height, textureRaw);
+        }
+
+        texture.LoadRawTextureData(textureRaw);
+        texture.Apply();
+        return texture;
+    }
 }

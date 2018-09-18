@@ -86,9 +86,9 @@ namespace TeamDev.Redis.LanguageItems
                 if (uclients == 0) return;
                 break;
               case "message":
-                var mchannel = _provider.ReadString();
+                var mchannel = provider.Provider.ReadString();
                 // Modified by nclsp, 14:26 - 21/06/2018 - Reading message as binary instead of string.
-                var bmessage = _provider.ReadData();
+                var bmessage = provider.Provider.ReadData();
                 provider.Provider.RaiseBinaryMessageReceivedEvent(mchannel, bmessage);
                 break;
               default:
@@ -96,9 +96,12 @@ namespace TeamDev.Redis.LanguageItems
             }
           }
         }
+        else {
+          Debug.Log("Provider null");
+        }
       }
       catch (Exception e) {
-        Debug.Log(e.Message);
+        Debug.Log(e.StackTrace + e.Message);
       }
     }
 

@@ -113,6 +113,7 @@ public class SetupIntrinsics : MonoBehaviour, NectarService {
 	}
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(SetupIntrinsics))]
 public class SetupIntrinsicsEditor : Editor 
 {
@@ -154,3 +155,4 @@ public class SetupIntrinsicsEditor : Editor
 		GUILayout.EndHorizontal();
     }
 }
+#endif

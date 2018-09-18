@@ -52,6 +52,7 @@ public class SetAxes : MonoBehaviour {
 	}
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(SetAxes))]
 public class SetAxesEditor : Editor 
 {
@@ -73,3 +74,4 @@ public class SetAxesEditor : Editor
 		GUILayout.EndHorizontal();
     }
 }
+#endif

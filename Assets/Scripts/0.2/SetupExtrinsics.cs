@@ -5,6 +5,9 @@ using UnityEditor;
 using UnityEngine.Networking;
 using TeamDev.Redis;
 
+/// <summary>
+/// 
+/// </summary>
 [ExecuteInEditMode]
 public class SetupExtrinsics : MonoBehaviour, NectarService {
 	public string Key = "extrinsics";
@@ -141,6 +144,7 @@ public class SetupExtrinsics : MonoBehaviour, NectarService {
 	}
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(SetupExtrinsics))]
 public class SetupExtrinsicsEditor : Editor 
 {
@@ -200,3 +204,4 @@ public class SetupExtrinsicsEditor : Editor
 		serializedObject.ApplyModifiedProperties();
     }
 }
+#endif

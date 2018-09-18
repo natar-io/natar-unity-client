@@ -108,6 +108,9 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 	/// </summary>
 	private ImageInformations currentImage;
 
+	private RawImage rawImage;
+
+
 	/// <summary>
 	/// Start method called by Unity main loop.
 	/// This function is used for initialization
@@ -124,9 +127,11 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 		// Since this has to work in editor, we are getting component informations each time we try to connect/init in case they changed
 		objectName = transform.gameObject.name;
 
-		if (connection == null) {
-			connection = new RedisConnection();
+		if (connection != null) {
+			connection.GetDataAccessProvider().Dispose();
 		}
+		
+		connection = new RedisConnection();
 		bool redisConnected = connection.TryConnection();
 		state = redisConnected ? ComponentState.CONNECTED : ComponentState.DISCONNECTED;
 		Utils.Log(objectName, "Redis connection: " + (redisConnected ? "succeed." : "failed."), (redisConnected ? 0 : 1));
@@ -143,6 +148,12 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 	public void Initialize() {
 		// Since this has to work in editor, we are getting component informations each time we try to connect/init in case they changed
 		objectName = transform.gameObject.name;
+
+		rawImage = this.GetComponent<RawImage> ();
+		if (rawImage == null) {
+			Utils.Log(objectName, "Failed to initialize camera playback. A raw image component is required.", 2);
+			return;
+		}
 
 		if (ARCamera == null) {
 			Utils.Log(objectName, "A camera component needs to be attached to this script. Please add a camera in the correct field and try again.", 2);
@@ -164,7 +175,6 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 		// if (subscriber == null) -> fix the multiple subscription problem but causes an undefined object ref when it crashes but is not null
 		subscriber = new Subscriber(redis);
 		subscriber.Subscribe(Key, OnImageReceived);
-		
 	}
 	
 	/// <summary>
@@ -203,12 +213,16 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 	/// <param name="channelName">The channel where data were published</param>
 	/// <param name="message">The published data</param>
 	void OnImageReceived (string channelName, byte[] message) {
-		string rawImageInfos = Utils.ByteToString (message);
-		currentImage = JsonUtility.FromJson<ImageInformations> (rawImageInfos);
-		if (currentImage.imageCount != previousImage.imageCount) {
+		Debug.Log("Frame received :" + channelName);
+		// This code here is causing TeamDev.Redis to throw null object exception when OnImageReceived is called from event raise (subscriber -> LanguageMessaging).
+		//string rawImageInfos = Utils.ByteToString (message);
+		// This line in particular seems to be the reason of the trouble -> Just set the byte data and do the checking stuff in update ?
+		//currentImage = JsonUtility.FromJson<ImageInformations> (rawImageInfos);
+		/*if (currentImage.imageCount != previousImage.imageCount) {
 			previousImage = currentImage;
 			imageDataUpdated = true;
-		}
+		}*/
+		imageDataUpdated = true;
 	}
 	
 	/// <summary>
@@ -236,8 +250,11 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 		}
 
 		if (imageDataUpdated) {
+			Utils.GetImageIntoPreallocatedTexture(redis, Key, videoTexture, imageData, imageWidth, imageHeight, imageChannels);
+			/*
 			// Get image data
 			int commandId = redis.SendCommand (RedisCommand.GET, Key);
+			// 70-90% of the update time is spent here.
 			imageData = Utils.RedisTryReadData (redis, commandId);
 			if (imageData != null) {
 				if (imageChannels == 2) {
@@ -249,12 +266,15 @@ public class CameraPlayback : MonoBehaviour, NectarService {
 					videoTexture.LoadRawTextureData (imageData);
 				}
 				videoTexture.Apply();
+				*/
+				rawImage.texture = videoTexture;
 				imageDataUpdated = false;
 			}
 		}
 	}
-}
+//}
 
+#if UNITY_EDITOR
 /// <summary>
 /// Unity Editor custom class overriding Unity Editor default layout to provide more friendly and comprehensive GUI for the user.
 /// </summary>
@@ -295,7 +315,9 @@ public class CameraPlaybackEditor : Editor
 
 		GUILayout.BeginHorizontal();
 		if (GUILayout.Button(new GUIContent("Start", "Start the associated camera service"))) {
-			script.Connect();
+			UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/start");
+			request.SendWebRequest();
+			//script.Connect();
 		}
 		if (GUILayout.Button(new GUIContent("Stop", "Stop the associated camera service"))) {
 			UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/stop");
@@ -303,6 +325,10 @@ public class CameraPlaybackEditor : Editor
 		}
 		if (GUILayout.Button(new GUIContent("Restart", "Restart the associated camera service"))) {
 			UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/restart");
+			request.SendWebRequest();
+		}
+		if (GUILayout.Button(new GUIContent("Test", "Test the current camera and display visual feedback"))) {
+			UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/test");
 			request.SendWebRequest();
 		}
 		GUILayout.EndHorizontal();
@@ -314,3 +340,4 @@ public class CameraPlaybackEditor : Editor
 	}
 	
 }
+#endif

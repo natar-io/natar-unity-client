@@ -16,6 +16,7 @@ public class ComponentController : MonoBehaviour {
 	}
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(ComponentController))]
 public class ComponentControllerEditor : Editor 
 {
@@ -23,3 +24,4 @@ public class ComponentControllerEditor : Editor
 		
 	}
 }
+#endif
