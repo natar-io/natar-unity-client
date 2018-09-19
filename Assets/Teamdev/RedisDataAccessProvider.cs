@@ -10,6 +10,8 @@ using TeamDev.Redis.Interface;
 using System.Threading;
 using System.ComponentModel;
 
+using UnityEngine;
+
 namespace TeamDev.Redis
 {
 
@@ -549,7 +551,8 @@ namespace TeamDev.Redis
         _tracer.CheckBalancing(commandid);
 
       string r = ReadLine();
-      Log(string.Format("R: {0}", r));
+      // Disable every log
+      //Log(string.Format("R: {0}", r));
 
       if (string.IsNullOrEmpty(r))
         return null;
@@ -570,10 +573,10 @@ namespace TeamDev.Redis
           byte[] retbuf = new byte[n];
           if (n > 0)
           {
-
             int bytesRead = 0;
             do
             {
+              
               int read = bstream.Read(retbuf, bytesRead, n - bytesRead);
               if (read < 1)
                 throw new Exception("Invalid termination mid stream");
@@ -583,8 +586,8 @@ namespace TeamDev.Redis
           }
           if (bstream.ReadByte() != '\r' || bstream.ReadByte() != '\n')
             throw new Exception("Invalid termination");
-          Log(string.Format("R: {0}, {1}", r, Encoding.UTF8.GetString(retbuf)));
-
+          // Useless? log logging full image data
+          //Log(string.Format("R: {0}, {1}", r, Encoding.UTF8.GetString(retbuf)));
           return retbuf;
         }
         throw new Exception("Invalid length");

@@ -51,7 +51,7 @@ namespace TeamDev.Redis.LanguageItems
 
     public void Unsubscribe(params string[] channels)
     {
-      if(_readingThread != null && _readingThread.ThreadState == ThreadState.Running) {
+      if(_readingThread != null && (_readingThread.ThreadState == ThreadState.Running || _readingThread.ThreadState == ThreadState.Background)) {
         _provider.SendCommand(RedisCommand.UNSUBSCRIBE, channels);
       }
     }

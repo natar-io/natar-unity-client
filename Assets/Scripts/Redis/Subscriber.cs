@@ -14,18 +14,15 @@ public class Subscriber {
 		this.redis.ChannelSubscribed += new ChannelSubscribedHandler(OnChannelSubscribed);
 	}
 
-	public void Subscribe(string channelName, Action<string, byte[]> callback) {
-		this.redis.Messaging.Subscribe(channelName);
-		//this.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler(DefaultEvent);
+	public void Subscribe(Action<string, byte[]> callback, params string[] channelNames) {
+		this.redis.Messaging.Subscribe(channelNames);
 		this.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler(callback);
-		//var sevenItems = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
-		//callback("hello", sevenItems);
 		Debug.Log("Event handler successfully set...");
 	}
 
-	public void Unsubscribe(string channelName, Action<string> callback) {
+	public void Unsubscribe(params string[] channelNames) {
 		this.redis.ChannelUnsubscribed += new ChannelUnsubscribedHandler(OnChannelUnsubscribed);
-		this.redis.Messaging.Unsubscribe(channelName);
+		this.redis.Messaging.Unsubscribe(channelNames);
 	}
 
 	void OnChannelSubscribed(string channelName) {
