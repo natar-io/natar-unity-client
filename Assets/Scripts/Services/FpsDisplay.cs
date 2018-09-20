@@ -5,16 +5,23 @@ using System.Collections;
 // Modified by: nclsp
 public class FpsDisplay : MonoBehaviour
 {
-	float deltaTime = 0.0f;
+	public bool OnlyDebugBuild = true;
+	public TextAnchor DisplayLocation;
+	[Range(8, 24)]
+	public int TextSize = 13;
+	
+	float elapsedTime = 0.0f;
+
 
 	void Start() {
-		if (!Debug.isDebugBuild)
+		if (!Debug.isDebugBuild && OnlyDebugBuild)
 			Destroy(this.gameObject);
 	}
  
 	void Update()
 	{
-		deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+		// Using elapsed delta time
+		elapsedTime += (Time.unscaledDeltaTime - elapsedTime) * 0.1f;
 	}
  
 	void OnGUI()
@@ -23,11 +30,12 @@ public class FpsDisplay : MonoBehaviour
  
 		GUIStyle style = new GUIStyle();
  
-		Rect rect = new Rect(0, 0, w, h * 2 / 100);
-		style.alignment = TextAnchor.UpperLeft;
-		style.fontSize = h * 2 / 75;
-		float msec = deltaTime * 1000.0f;
-		float fps = 1.0f / deltaTime;
+		Rect rect = new Rect(0, 0, w, h);
+
+		style.alignment = DisplayLocation;
+		style.fontSize = TextSize;
+		float msec = elapsedTime * 1000.0f;
+		float fps = 1.0f / elapsedTime;
 		if (fps > 30)
 			style.normal.textColor = new Color (0.0f, 1.0f, 0.0f, 1.0f);
 		else if (fps > 15)

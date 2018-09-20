@@ -218,6 +218,7 @@ public class CameraPlayback : MonoBehaviour, INectarService {
 		Debug.Log("Frame received :" + channelName);
 		if (channelName == UnsubKey) {
 			subscriber.Unsubscribe(Key, UnsubKey);
+			return;
 		}
 		/*
 		// This code here is causing TeamDev.Redis to throw null object exception when OnImageReceived is called from event raise (subscriber -> LanguageMessaging).

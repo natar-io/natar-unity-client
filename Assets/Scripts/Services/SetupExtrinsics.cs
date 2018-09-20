@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -24,7 +25,6 @@ public class SetupExtrinsics : MonoBehaviour, INectarService {
 	public string objectName;
 	public ComponentState state = ComponentState.DISCONNECTED;
 	public ExtrinsicsParameters ExtrinsicsParameters;
-
 
 	private string UnsubKey = "Kill";
 
@@ -96,9 +96,15 @@ public class SetupExtrinsics : MonoBehaviour, INectarService {
 	void OnExtrinsicsReceived(string channelName, byte[] message) {
 		if (channelName == UnsubKey) {
 			subscriber.Unsubscribe(Key, UnsubKey);
+			return;
 		}
 		string extrinsics = Utils.ByteToString(message);
-		ExtrinsicsParameters = JsonUtility.FromJson<ExtrinsicsParameters>(extrinsics);
+		try {
+			ExtrinsicsParameters = JsonUtility.FromJson<ExtrinsicsParameters>(extrinsics);
+		}
+		catch (Exception e) {
+			Debug.Log(e.Message);
+		}
 	}
 
 	void UpdateExtrinsics() {

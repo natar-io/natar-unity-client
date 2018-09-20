@@ -5,7 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
-    path: Assets/Scenes/0.2/Demo - See through.unity
+  - enabled: 0
+    path: Assets/Scenes/Demo - See through.unity
     guid: 28635e88be23b4f0da03de7450f1f26a
+  - enabled: 1
+    path: Assets/Scenes/Demo - Simple projective illusion.unity
+    guid: ee0ecb0163061492aa908561c87a573f
   m_configObjects: {}
