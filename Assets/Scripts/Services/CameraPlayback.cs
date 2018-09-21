@@ -284,6 +284,11 @@ public class CameraPlayback : MonoBehaviour, INectarService {
 [CustomEditor(typeof(CameraPlayback))]
 public class CameraPlaybackEditor : Editor 
 {
+	private bool paramsFoldout = true;
+	private bool nectarFoldout = true;
+	private bool controlFoldout = true;
+	private bool videoFoldout = false;
+
 	//Creating serialized properties so we can retrieve variable attributes without having to recreate them in the custom editor
 	SerializedProperty mscript = null;
 	SerializedProperty arCamera = null;
@@ -303,6 +308,9 @@ public class CameraPlaybackEditor : Editor
 
     public override void OnInspectorGUI()
     {
+		GUIStyle foldoutStyle = EditorStyles.foldout;
+		foldoutStyle.fontStyle = FontStyle.Bold;
+
         CameraPlayback script = (CameraPlayback)target;
 
 		// This will show the current used script and make it clickable. When clicked, the script's code is open into the default editor.
@@ -310,45 +318,74 @@ public class CameraPlaybackEditor : Editor
      	EditorGUILayout.PropertyField(mscript, true, new GUILayoutOption[0]);
 		GUI.enabled = true;
 		
-		EditorGUILayout.PropertyField(arCamera);
-		EditorGUILayout.PropertyField(overrideKey);
-		if (script.OverrideKey) {
-			EditorGUILayout.PropertyField(key);
+		GUILayout.Space(5);
+
+		paramsFoldout = EditorGUILayout.Foldout(paramsFoldout, "Parameters", foldoutStyle);
+		if (paramsFoldout) 
+		{
+			EditorGUILayout.PropertyField(arCamera);
+			EditorGUILayout.PropertyField(overrideKey);
+			if (script.OverrideKey) {
+				EditorGUILayout.PropertyField(key);
+			}
+			EditorGUILayout.PropertyField(outputImage);
+
+			GUILayout.Space(5);
+		}
+		
+		controlFoldout = EditorGUILayout.Foldout(controlFoldout, "Control", foldoutStyle);
+		if (controlFoldout) 
+		{
+			GUILayout.BeginHorizontal();
+			GUI.enabled = false;
+			script.state = (ComponentState)EditorGUILayout.EnumPopup("Internal state", script.state);
+			GUI.enabled = true;
+			if (GUILayout.Button("Reinitialize")) {
+				script.Connect();
+			}
+			GUILayout.EndHorizontal();
+
+			GUILayout.Space(5);
 		}
 
-		EditorGUILayout.PropertyField(outputImage);
+		nectarFoldout = EditorGUILayout.Foldout(nectarFoldout, "Nectar", foldoutStyle);
+		if (nectarFoldout) 
+		{
+			GUILayout.BeginHorizontal();
+			if (GUILayout.Button(new GUIContent("Start", "Start the associated camera service"))) {
+				UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/start");
+				request.SendWebRequest();
+				//script.Connect();
+			}
+			if (GUILayout.Button(new GUIContent("Stop", "Stop the associated camera service"))) {
+				UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/stop");
+				request.SendWebRequest();
+			}
+			if (GUILayout.Button(new GUIContent("Restart", "Restart the associated camera service"))) {
+				UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/restart");
+				request.SendWebRequest();
+			}
+			if (GUILayout.Button(new GUIContent("Test", "Test the current camera and display visual feedback"))) {
+				UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/test");
+				request.SendWebRequest();
+			}
+			GUILayout.EndHorizontal();
+			EditorGUILayout.HelpBox("This buttons provide simple ways to control the current service. It allows you to ask Nectar to do several operations.", MessageType.Info);
+		}
 
-		// Control layout : [current state] [restart button]
-		GUILayout.BeginHorizontal();
-		GUI.enabled = false;
-		script.state = (ComponentState)EditorGUILayout.EnumPopup("Internal state", script.state);
-		GUI.enabled = true;
-		if (GUILayout.Button("Reinitialize")) {
-			script.Connect();
+		videoFoldout = EditorGUILayout.Foldout(videoFoldout, "Output preview", foldoutStyle);
+		if (videoFoldout) 
+		{
+			GUIStyle videoOutputStyle = new GUIStyle();
+			videoOutputStyle.clipping = TextClipping.Clip;
+			videoOutputStyle.fixedHeight = 160;
+			videoOutputStyle.fixedWidth = 213;
+			videoOutputStyle.alignment = TextAnchor.MiddleCenter;
+			GUILayout.Label(script.videoTexture, videoOutputStyle);
+			if (GUILayout.Button(new GUIContent("Refresh", "Refresh the video output."))) { 
+				EditorUtility.SetDirty(target);
+			}
 		}
-		GUILayout.EndHorizontal();
-
-		GUILayout.BeginHorizontal();
-		if (GUILayout.Button(new GUIContent("Start", "Start the associated camera service"))) {
-			UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/start");
-			request.SendWebRequest();
-			//script.Connect();
-		}
-		if (GUILayout.Button(new GUIContent("Stop", "Stop the associated camera service"))) {
-			UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/stop");
-			request.SendWebRequest();
-		}
-		if (GUILayout.Button(new GUIContent("Restart", "Restart the associated camera service"))) {
-			UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/restart");
-			request.SendWebRequest();
-		}
-		if (GUILayout.Button(new GUIContent("Test", "Test the current camera and display visual feedback"))) {
-			UnityWebRequest request = UnityWebRequest.Get("http://localhost:8124/nectar/" + script.Key + "/test");
-			request.SendWebRequest();
-		}
-		GUILayout.EndHorizontal();
-
-		GUILayout.Label(script.videoTexture);
 
 		// Find all the PropertyField and apply layout and style to them so they can be displayed
 		serializedObject.ApplyModifiedProperties();

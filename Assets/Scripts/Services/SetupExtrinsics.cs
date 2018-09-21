@@ -110,13 +110,6 @@ public class SetupExtrinsics : MonoBehaviour, INectarService {
 	void UpdateExtrinsics() {
 		Matrix4x4 transRot = new Matrix4x4();
 		transRot = Utils.FloatArrayToMatrix4x4(ExtrinsicsParameters.matrix);
-		/*
-		Matrix4x4 transform = new Matrix4x4();
-		transform.SetRow(0, new Vector4(ExtrinsicsParameters.matrix[0],		ExtrinsicsParameters.matrix[1],		ExtrinsicsParameters.matrix[2],		ExtrinsicsParameters.matrix[3]));
-		transform.SetRow(1, new Vector4(ExtrinsicsParameters.matrix[4],		ExtrinsicsParameters.matrix[5],		ExtrinsicsParameters.matrix[6],		ExtrinsicsParameters.matrix[7]));
-		transform.SetRow(2, new Vector4(ExtrinsicsParameters.matrix[8],		ExtrinsicsParameters.matrix[9],		ExtrinsicsParameters.matrix[10],	ExtrinsicsParameters.matrix[11]));
-		transform.SetRow(3, new Vector4(ExtrinsicsParameters.matrix[12],	ExtrinsicsParameters.matrix[13],	ExtrinsicsParameters.matrix[14],	ExtrinsicsParameters.matrix[15]));
-		*/
 
 		if (ReverseY) {
 			Matrix4x4 scale = Matrix4x4.Scale(new Vector3(1, -1, 1));
