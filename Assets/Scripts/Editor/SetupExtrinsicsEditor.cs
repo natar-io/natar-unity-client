@@ -12,18 +12,19 @@ namespace Natar
             private MonoScript script;
 
             //Creating serialized properties so we can retrieve variable attributes without having to recreate them in the custom editor
-            private SerializedProperty key = null;
+            protected SerializedProperty key;
 
             private bool OptionFoldout = true;
 
-            private void OnEnable()
-            {   
+            private void OnEnable() {   
                 script = MonoScript.FromMonoBehaviour(S);
                 key = serializedObject.FindProperty("Key");
             }
 
-            public override void OnInspectorGUI()
-            {
+            public override void OnInspectorGUI() {
+
+                serializedObject.Update();
+
                 // This will show the current used script and make it clickable. When clicked, the script's code is open into the default editor.
                 EditorGUI.BeginDisabledGroup(true);
                 script = (MonoScript)EditorGUILayout.ObjectField("Script", script, typeof(MonoScript), false);
@@ -35,8 +36,7 @@ namespace Natar
                 OptionFoldout = EditorGUILayout.Foldout(OptionFoldout, "Options");
                 EditorGUI.indentLevel--;
 
-                if (OptionFoldout)
-                {
+                if (OptionFoldout) {
                     EditorGUILayout.BeginVertical(NatarEditor.FlatBox);
                     {
                         EditorGUILayout.BeginHorizontal();
@@ -45,31 +45,14 @@ namespace Natar
 
                             S.LiveUpdate = GUILayout.Toggle(S.LiveUpdate, new GUIContent("U","Enable live update mod."), EditorStyles.miniButton, GUILayout.Width(18));
                             S.ReverseYAxis = GUILayout.Toggle(S.ReverseYAxis, new GUIContent("Y","Toggle reverse y axis mod."), EditorStyles.miniButton, GUILayout.Width(18));
-                            
-                            // Alternative icons 
-                            Texture2D statusIcon;
-                            switch(S.state) {
-                                case ServiceStatus.DISCONNECTED:
-                                    statusIcon = EditorGUIUtility.FindTexture("d_winbtn_mac_close");
-                                    break;
-                                case ServiceStatus.CONNECTED:
-                                    statusIcon = EditorGUIUtility.FindTexture("d_winbtn_mac_min");
-                                    break;
-                                case ServiceStatus.WORKING:
-                                    statusIcon = EditorGUIUtility.FindTexture("d_winbtn_mac_max");
-                                    break;
-                                default:
-                                    statusIcon = EditorGUIUtility.FindTexture("d_winbtn_mac_inact");
-                                    break;
-                            }
-                            GUILayout.Label(new GUIContent(statusIcon, "Current service status"), GUILayout.Width(18));
-                            
+                            NatarEditor.DrawServiceStatus(S.state);
                         }
                         EditorGUILayout.EndHorizontal();
                     }
                     EditorGUILayout.EndVertical();
                 }
                 EditorGUILayout.EndVertical();
+                
                 serializedObject.ApplyModifiedProperties();
             }
         }
