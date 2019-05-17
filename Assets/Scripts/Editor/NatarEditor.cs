@@ -24,11 +24,28 @@ namespace Natar
                     return Style(new Color(0, 0.5f, 1f, 0.3f));
                 }
             }
+
             public static GUIStyle StyleGreen
             {
                 get
                 {
                     return Style(new Color(0f, 1f, 0.5f, 0.3f));
+                }
+            }
+            
+            public static GUIStyle StyleRed
+            {
+                get
+                {
+                    return Style(new Color(0.9f, 0.3f, 0.25f, 0.3f));
+                }
+            }
+
+            public static GUIStyle StyleOrange
+            {
+                get
+                {
+                    return Style(new Color(0.9f, 0.55f, 0.15f, 0.3f));
                 }
             }
 
@@ -92,6 +109,17 @@ namespace Natar
                     EditorGUILayout.LabelField(value, GUILayout.MaxWidth(50));
                 }
                 EditorGUILayout.EndHorizontal();
+            }
+
+            public static void DrawTexture(Texture2D texture) {
+                double aspectRatio = texture.width / texture.height;
+                GUIStyle style = new GUIStyle();
+                style.clipping = TextClipping.Clip;
+                style.fixedWidth = 200;
+                style.fixedHeight = (int)(200.0 / aspectRatio);
+                style.alignment = TextAnchor.MiddleCenter;
+
+                GUILayout.Label(texture, style);
             }
         }
     }
