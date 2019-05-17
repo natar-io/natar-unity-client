@@ -50,13 +50,10 @@ namespace Natar
 			this.state = connected ? ServiceStatus.CONNECTED : ServiceStatus.DISCONNECTED;
 
 			if (connected) {
-				bool isInit = init();
-				if (isInit) {
-					this.state = ServiceStatus.WORKING;
-				}
+				init();
 			}
 			else {
-				bool isKilled = kill();
+				kill();
 			}
 		}
 			
@@ -78,15 +75,13 @@ namespace Natar
 			try {
 				redis.Connect();
 			} catch (Exception) {
-				state = ServiceStatus.DISCONNECTED;
+				OnServiceConnectionStateChanged(false);
 				return;
 			}
-			state = ServiceStatus.CONNECTED;
 			OnServiceConnectionStateChanged(true);
 		}
 
 		private void disconnect() {
-			this.state = ServiceStatus.DISCONNECTED;
 			OnServiceConnectionStateChanged(false);
 		}
 
@@ -97,29 +92,39 @@ namespace Natar
 			return Utils.RedisTryGetExtrinsics(redis, Key);
 		}
 
-		private bool init() {
+		public void init() {
 			if (LiveUpdate) {
+				if (redisSubscriber != null) {
+					redisSubscriber.Unsubscribe(Key, "unsub");
+				}
 				redisSubscriber = new Subscriber(redis);
 				redisSubscriber.Subscribe(OnExtrinsicsReceived, Key, "unsub");
-				return true;
+				this.state = ServiceStatus.WORKING;
 			}
 			else {
 				ExtrinsicsParameters parameters = load();
-				applyExtrinsics(parameters);
-				return parameters != null;
+				if (applyExtrinsics(parameters)) {
+					this.state = ServiceStatus.WORKING;
+				}
+				else {
+					this.state = ServiceStatus.CONNECTED;
+				}
 			}
 		}
 
-		private bool kill() {
+		private void kill() {
+			redisSubscriber.Unsubscribe(Key, "unsub");
 			redisSubscriber = null;
-			return true;
 		}
-	#endregion
 
-		public void applyExtrinsics(ExtrinsicsParameters extrinsics) {
-			if (extrinsics == null) return;
-			Matrix4x4 transRot = new Matrix4x4();
+	#endregion
+		private Matrix4x4 currentTR;
+
+		public bool applyExtrinsics(ExtrinsicsParameters extrinsics) {
+			if (extrinsics == null) { return false; }
+			Matrix4x4? transRot = new Matrix4x4();
 			transRot = Utils.FloatArrayToMatrix4x4(extrinsics.matrix);
+			if (transRot == null) { return false; }
 
 			if (ReverseYAxis) {
 				Matrix4x4 scale = Matrix4x4.Scale(new Vector3(1, -1, 1));
@@ -128,6 +133,12 @@ namespace Natar
 
 			transform.localPosition = Utils.ExtractTranslation((Matrix4x4)transRot);
 			transform.localRotation = Utils.ExtractRotation((Matrix4x4)transRot);
+			this.currentTR = (Matrix4x4) transRot;
+			return true;
+		}
+
+		public Matrix4x4 GetTransformationMatrix() {
+			return this.currentTR;
 		}
 	}
 }
