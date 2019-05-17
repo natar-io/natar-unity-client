@@ -57,6 +57,26 @@ namespace Natar
                 currentStyle.normal.background = bg;
                 return currentStyle;
             }
+
+            public static void DrawServiceStatus(ServiceStatus state) {
+                // Alternative icons 
+                Texture2D statusIcon;
+                switch(state) {
+                    case ServiceStatus.DISCONNECTED:
+                        statusIcon = EditorGUIUtility.FindTexture("d_winbtn_mac_close");
+                        break;
+                    case ServiceStatus.CONNECTED:
+                        statusIcon = EditorGUIUtility.FindTexture("d_winbtn_mac_min");
+                        break;
+                    case ServiceStatus.WORKING:
+                        statusIcon = EditorGUIUtility.FindTexture("d_winbtn_mac_max");
+                        break;
+                    default:
+                        statusIcon = EditorGUIUtility.FindTexture("d_winbtn_mac_inact");
+                        break;
+                }
+                GUILayout.Label(new GUIContent(statusIcon, "Current service status"), GUILayout.Width(18));
+            }
         }
     }
 }

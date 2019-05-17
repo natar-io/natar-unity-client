@@ -106,13 +106,7 @@ public class RedisHandler : Singleton<RedisHandler> {
 	private IEnumerator PingRedis() {
 		while (true) {
 			yield return new WaitForSeconds(PingLatency / 1000.0f);
-			if (redisConnected) {
-				bool redisAlive = pingServer();
-				if (!redisAlive) {
-					redisConnected = false;
-					ConnectionStatusChanged(redisConnected);
-				}
-			}
+			Ping();
 		}
 	}
 
@@ -134,11 +128,28 @@ public class RedisHandler : Singleton<RedisHandler> {
 		return redis;
 	}
 
-	private Boolean pingServer() {
+	public void Ping() {
+		// If we believe that Redis is connected, ping it
+		if (redisConnected) {
+			bool alive = SocketConnected(parent.GetSocket());
+			if (!alive) {
+				redisConnected = false;
+				ConnectionStatusChanged(redisConnected);
+			}
+		}
+		/*
+		if (redisConnected) {
+				bool redisAlive = pingServer();
+				if (!redisAlive) {
+					redisConnected = false;
+					ConnectionStatusChanged(redisConnected);
+				}
+			}
 		if (!redisConnected) {
 			return false;
 		}
 		return SocketConnected(parent.GetSocket());
+		*/
 	}
 
 
