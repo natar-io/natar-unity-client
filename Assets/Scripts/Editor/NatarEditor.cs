@@ -77,6 +77,22 @@ namespace Natar
                 }
                 GUILayout.Label(new GUIContent(statusIcon, "Current service status"), GUILayout.Width(18));
             }
+
+            public static void DrawMatrix4x4(Matrix4x4 matrix) {
+                for (int i = 0 ; i < 4 ; i++) {
+                    DrawMatrix4x4Row(matrix, i);
+                }
+            }
+
+            public static void DrawMatrix4x4Row(Matrix4x4 matrix, int row) {
+                int start = row * 4, end = start + 4;
+                EditorGUILayout.BeginHorizontal();
+                for (int i = start ; i < end ; i++) {
+                    string value = matrix[i].ToString("0.000");
+                    EditorGUILayout.LabelField(value, GUILayout.MaxWidth(50));
+                }
+                EditorGUILayout.EndHorizontal();
+            }
         }
     }
 }
