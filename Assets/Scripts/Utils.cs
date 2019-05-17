@@ -57,6 +57,13 @@ public static class Utils {
         return data;
     }
 
+    public static T JSONTo<T>(string json) {
+        if (json == null || json == "" || json.Equals(string.Empty)) {
+            return default(T);
+        }
+        return JsonUtility.FromJson<T>(json);
+    }
+
     /// <summary>
     /// Tries to get physical camera parameter saved in redis
     /// </summary>
@@ -64,32 +71,22 @@ public static class Utils {
     /// <returns></returns>
     public static IntrinsicsParameters RedisTryGetIntrinsics (RedisDataAccessProvider redis, string key) {
         int commandId = redis.SendCommand (RedisCommand.GET, key);
-        string intrinsics = Utils.RedisTryReadString (redis, commandId);
-        if (intrinsics != null) {
-            IntrinsicsParameters intrinsicsParameters = JsonUtility.FromJson<IntrinsicsParameters> (intrinsics);
-            return intrinsicsParameters;
-        }
-        return null;
+        string intrinsicsData = null;
+        intrinsicsData = Utils.RedisTryReadString (redis, commandId);
+        return JSONTo<IntrinsicsParameters>(intrinsicsData);
     }
 
     public static ExtrinsicsParameters RedisTryGetExtrinsics (RedisDataAccessProvider redis, string key) {
         int commandId = redis.SendCommand (RedisCommand.GET, key);
-        string extrinsics = Utils.RedisTryReadString (redis, commandId);
-        if (extrinsics != null) {
-            ExtrinsicsParameters extrinsicsParameters = JsonUtility.FromJson<ExtrinsicsParameters> (extrinsics);
-            return extrinsicsParameters;
-        }
-        return null;
+        string extrinsicsData = null;
+        extrinsicsData = Utils.RedisTryReadString (redis, commandId);
+        return JSONTo<ExtrinsicsParameters>(extrinsicsData);
     }
 
     public static Position RedisTryGetPosition (RedisDataAccessProvider redis, string key) {
         int commandId = redis.SendCommand (RedisCommand.GET, key);
         string positionData = Utils.RedisTryReadString (redis, commandId);
-        if (positionData != null) {
-            Position position = JsonUtility.FromJson<Position> (positionData);
-            return position;
-        }
-        return null;
+        return JSONTo<Position>(positionData);
     }
 
     /// <summary>
@@ -216,7 +213,8 @@ public static class Utils {
         return dataRGB;
     }
 
-    public static Matrix4x4 FloatArrayToMatrix4x4(float[] array) {
+    public static Matrix4x4? FloatArrayToMatrix4x4(float[] array) {
+        if (array == null) { return null; }
         Matrix4x4 mat = new Matrix4x4();
         mat.SetRow(0, new Vector4(array[0], array[1], array[2], array[3]));
         mat.SetRow(1, new Vector4(array[4], array[5], array[6], array[7]));
