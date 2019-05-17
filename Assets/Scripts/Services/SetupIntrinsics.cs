@@ -29,7 +29,7 @@ namespace Natar
 
 			rHandler = RedisHandler.Instance;
 			rHandler.ConnectionStatusChanged += OnRedisHandlerConnectionStateChanged;
-			rHandler.ConnectionStatusNotification += OnRedisHandlerConnectionNotificationStatus;
+			rHandler.ConnectionStatusNotification += OnRedisHandlerConnectionStatusNotification;
 			rHandler.NewService("intrinsics");
 			
 			ServiceConnectionStateChanged += OnServiceConnectionStateChanged;
@@ -37,7 +37,7 @@ namespace Natar
 
 	#region event
 
-		public void OnRedisHandlerConnectionNotificationStatus(bool handlerConnected) {
+		public void OnRedisHandlerConnectionStatusNotification(bool handlerConnected) {
 			if (this.state == ServiceStatus.DISCONNECTED && handlerConnected) {
 				this.connect();
 			}
@@ -80,9 +80,7 @@ namespace Natar
 		}
 
 		private IntrinsicsParameters load() {
-			if (redis == null) {
-				return null;
-			}
+			if (redis == null) { return null; }
 			return Utils.RedisTryGetIntrinsics(redis, Key);
 		}
 
