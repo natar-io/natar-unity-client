@@ -51,6 +51,9 @@ namespace Natar
 
 			if (connected) {
 				bool isInit = init();
+				if (isInit) {
+					this.state = ServiceStatus.WORKING;
+				}
 			}
 			else {
 				bool isKilled = kill();
