@@ -113,8 +113,10 @@ namespace Natar
 		}
 
 		private void kill() {
-			redisSubscriber.Unsubscribe(Key, "unsub");
-			redisSubscriber = null;
+			if (redisSubscriber != null) {
+				redisSubscriber.Unsubscribe(Key, "unsub");
+				redisSubscriber = null;
+			}
 		}
 
 	#endregion
