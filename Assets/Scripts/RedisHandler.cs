@@ -137,19 +137,6 @@ public class RedisHandler : Singleton<RedisHandler> {
 				ConnectionStatusChanged(redisConnected);
 			}
 		}
-		/*
-		if (redisConnected) {
-				bool redisAlive = pingServer();
-				if (!redisAlive) {
-					redisConnected = false;
-					ConnectionStatusChanged(redisConnected);
-				}
-			}
-		if (!redisConnected) {
-			return false;
-		}
-		return SocketConnected(parent.GetSocket());
-		*/
 	}
 
 

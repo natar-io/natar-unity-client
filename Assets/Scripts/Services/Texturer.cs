@@ -34,6 +34,12 @@ namespace Natar
 			ServiceConnectionStateChanged += OnServiceConnectionStateChanged;
 		}
 
+		public void Update() {
+			#if UNITY_EDITOR
+			if (!CheckScriptCurrentState()) { this.Start(); }
+			#endif
+		}
+
 
 	#region event
 
@@ -109,6 +115,12 @@ namespace Natar
 
 		public Texture2D GetCurrentTexture() {
 			return this.currentTexture;
+		}
+
+
+		public bool CheckScriptCurrentState() {
+			return this.rHandler != null && 
+					this.redis != null;
 		}
 	}
 }

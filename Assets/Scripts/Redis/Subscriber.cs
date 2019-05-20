@@ -17,7 +17,7 @@ public class Subscriber {
 	public void Subscribe(Action<string, byte[]> callback, params string[] channelNames) {
 		this.redis.Messaging.Subscribe(channelNames);
 		this.redis.BinaryMessageReceived += new BinaryMessageReceivedHandler(callback);
-		Debug.Log("Event handler successfully set...");
+		//Debug.Log("Event handler successfully set...");
 	}
 
 	public void Unsubscribe(params string[] channelNames) {
@@ -26,14 +26,14 @@ public class Subscriber {
 	}
 
 	void OnChannelSubscribed(string channelName) {
-		Debug.Log("[SUBSCRIBER] SUB to " + channelName);
+		//Debug.Log("[SUBSCRIBER] SUB to " + channelName);
 	}
 
 	void OnChannelUnsubscribed(string channelName) {
-		Debug.Log("[SUBCRIBER] UNSUB to " + channelName);
+		//Debug.Log("[SUBCRIBER] UNSUB to " + channelName);
 	}
 
 	void DefaultEvent(string name, byte[] data) {
-		Debug.Log("Data were lost cause no handler were found.");
+		//Debug.Log("Data were lost cause no handler were found.");
 	}
 }

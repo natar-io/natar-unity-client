@@ -21,9 +21,9 @@ namespace Natar
 		public String Key = "camera";
 		public ServiceStatus state = ServiceStatus.DISCONNECTED;
 
-		private ImageData imageData;
-		public Texture2D preallocatedTexture;
-		private byte[] preallocatedData;
+		private ImageData imageData = new ImageData();
+		public Texture2D preallocatedTexture = null;
+		private byte[] preallocatedData = null;
 
 		public RawImage OutImage;
 
@@ -33,9 +33,7 @@ namespace Natar
 
 		private delegate void OnServiceConnectionStateChangedHandler(bool connected);
 
-		#pragma warning disable 169, 414
 		private event OnServiceConnectionStateChangedHandler ServiceConnectionStateChanged;
-		#pragma warning restore 169, 414
 
 		public void Start() {
 			this.state = ServiceStatus.DISCONNECTED;
@@ -48,6 +46,9 @@ namespace Natar
 		}
 
 		public void Update() {
+			#if UNITY_EDITOR
+			if (!CheckScriptCurrentState()) { this.Start(); }
+			#endif
 			if (imageNeedsUpdate) {
 				Utils.GetImageIntoPreallocatedTexture(redis, Key, ref preallocatedTexture, preallocatedData, imageData.Width, imageData.Height, imageData.Channels);
 				if (OutImage != null) { OutImage.texture = preallocatedTexture; }
@@ -152,6 +153,15 @@ namespace Natar
 
 		public Texture2D GetCurrentTexture() {
 			return this.preallocatedTexture;
+		}
+
+		public bool CheckScriptCurrentState() {
+			return this.rHandler != null && 
+					this.redis != null &&
+					this.redisSubscriber != null &&
+					this.preallocatedTexture != null &&
+					this.preallocatedData != null &&
+					this.imageData != null;
 		}
 	}
 }

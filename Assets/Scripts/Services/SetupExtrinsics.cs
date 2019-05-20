@@ -17,6 +17,9 @@ namespace Natar
 		public bool LiveUpdate = false;
 		public bool ReverseYAxis = false;
 
+		private ExtrinsicsParameters eParameters;
+		private bool extrinsicsNeedsUpdate = false;
+
 		public ServiceStatus state = ServiceStatus.DISCONNECTED;
 
 		private delegate void OnServiceConnectionStateChangedHandler(bool connected);
@@ -30,6 +33,16 @@ namespace Natar
 			rHandler.ConnectionStatusNotification += OnRedisHandlerConnectionNotificationStatus;
 			rHandler.NewService("extrinsics");
 			ServiceConnectionStateChanged += OnServiceConnectionStateChanged;
+		}
+
+		public void Update() {
+			#if UNITY_EDITOR
+			if (!CheckScriptCurrentState()) { this.Start(); }
+			#endif
+			if (extrinsicsNeedsUpdate) {
+				applyExtrinsics(eParameters);
+				extrinsicsNeedsUpdate = false;
+			}
 		}
 
 	#region event
@@ -64,7 +77,9 @@ namespace Natar
 
 			string extrinsics = Utils.ByteToString(message);
 			if (extrinsics == "") return;
-			ExtrinsicsParameters parameters = Utils.JSONTo<ExtrinsicsParameters>(extrinsics);
+			eParameters = Utils.JSONTo<ExtrinsicsParameters>(extrinsics);
+			extrinsicsNeedsUpdate = true;
+			//applyExtrinsics(parameters);
 		}
 
 	#endregion
@@ -102,8 +117,8 @@ namespace Natar
 				this.state = ServiceStatus.WORKING;
 			}
 			else {
-				ExtrinsicsParameters parameters = load();
-				if (applyExtrinsics(parameters)) {
+				eParameters = load();
+				if (applyExtrinsics(eParameters)) {
 					this.state = ServiceStatus.WORKING;
 				}
 				else {
@@ -141,6 +156,12 @@ namespace Natar
 
 		public Matrix4x4 GetTransformationMatrix() {
 			return this.currentTR;
+		}
+
+		public bool CheckScriptCurrentState() {
+			return this.rHandler != null && 
+					this.redis != null &&
+					this.redisSubscriber != null;
 		}
 	}
 }

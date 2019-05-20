@@ -35,6 +35,12 @@ namespace Natar
 			ServiceConnectionStateChanged += OnServiceConnectionStateChanged;
 		}
 
+		public void Update() {
+			#if UNITY_EDITOR
+			if (!CheckScriptCurrentState()) { this.Start(); }
+			#endif
+		}
+
 	#region event
 
 		public void OnRedisHandlerConnectionStatusNotification(bool handlerConnected) {
@@ -120,6 +126,12 @@ namespace Natar
 
 		public Matrix4x4 GetProjectionMatrix() {
 			return targetCamera.projectionMatrix;
+		}
+
+
+		public bool CheckScriptCurrentState() {
+			return this.rHandler != null && 
+					this.redis != null;
 		}
 	}
 }
