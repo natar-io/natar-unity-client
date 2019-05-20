@@ -35,49 +35,49 @@ namespace Natar
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 {
                     EditorGUI.indentLevel++;
-                    OptionFoldout = EditorGUILayout.Foldout(OptionFoldout, "Parameters");
+                    OptionFoldout = EditorGUILayout.Foldout(OptionFoldout, "Options");
                     EditorGUI.indentLevel--;
 
                     if (OptionFoldout) {
-                        
                         #region datakey
-                        EditorGUILayout.BeginVertical(NatarEditor.FlatBox);
+                        EditorGUILayout.BeginHorizontal(NatarEditor.FlatBox);
                         {
-                            EditorGUILayout.BeginHorizontal(NatarEditor.FlatBox);
-                            {
-                                EditorGUILayout.PropertyField(key, new GUIContent("Data key", "Redis data key holding intrinsics parameters informations."), GUILayout.MinWidth(50));
-                                if (GUILayout.Button(new GUIContent("T", "Test if the key contains data."), EditorStyles.miniButton, GUILayout.Width(18))) {
-                                    if (T.state != ServiceStatus.DISCONNECTED) {
-                                        T.init();
-                                    }
+                            EditorGUILayout.PropertyField(key, new GUIContent("Data key", "Redis data key holding intrinsics parameters informations."), GUILayout.MinWidth(50));
+                            if (GUILayout.Button(new GUIContent("T", "Test if the key contains data."), EditorStyles.miniButton, GUILayout.Width(18))) {
+                                if (T.state != ServiceStatus.DISCONNECTED) {
+                                    T.init();
                                 }
-                                NatarEditor.DrawServiceStatus(T.state);
-                            
                             }
-                            EditorGUILayout.EndHorizontal();
+                            NatarEditor.DrawServiceStatus(T.state);
+                        
                         }
+                        EditorGUILayout.EndHorizontal();
                         #endregion
 
                         #region targetmodel
-                        EditorGUILayout.PropertyField(targetModel, new GUIContent("Target model", "3D model to apply the texture to."));
-                        if (T.targetModel == null) {
-                            EditorGUILayout.BeginVertical(NatarEditor.StyleRed);
-                            {
-                                EditorGUILayout.HelpBox("The target model is required for the component to work.", MessageType.None, true);
+                        EditorGUILayout.BeginVertical(NatarEditor.FlatBox);
+                        {
+                            EditorGUILayout.PropertyField(targetModel, new GUIContent("Target model", "3D model to apply the texture to."));
+                            if (T.targetModel == null) {
+                                EditorGUILayout.BeginVertical(NatarEditor.StyleRed);
+                                {
+                                    EditorGUILayout.HelpBox("The target model is required for the component to work.", MessageType.None, true);
+                                }
+                                EditorGUILayout.EndVertical();
                             }
-                            EditorGUILayout.EndVertical();
-                        }
-                        else if (T.targetModel.GetComponent<Renderer>() == null) {
-                            EditorGUILayout.BeginVertical(NatarEditor.StyleOrange);
-                            {
-                                EditorGUILayout.HelpBox("The target model must have a material in order for the texture to be set.", MessageType.None, true);
+                            else if (T.targetModel.GetComponent<Renderer>() == null) {
+                                EditorGUILayout.BeginVertical(NatarEditor.StyleOrange);
+                                {
+                                    EditorGUILayout.HelpBox("The target model must have a material in order for the texture to be set.", MessageType.None, true);
+                                }
+                                EditorGUILayout.EndVertical();
                             }
-                            EditorGUILayout.EndVertical();
                         }
+                        EditorGUILayout.EndVertical();
                         #endregion
 
                         #region texture
-                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.BeginHorizontal(NatarEditor.FlatBox);
                         {
                             GUILayout.FlexibleSpace();
                             Texture2D tex = T.GetCurrentTexture();
@@ -92,10 +92,9 @@ namespace Natar
                         GUILayout.EndHorizontal();
                         #endregion
                     }
-                    EditorGUILayout.EndVertical();
                 }
                 EditorGUILayout.EndVertical();
-
+                
                 serializedObject.ApplyModifiedProperties();
             }
         }
