@@ -258,15 +258,22 @@ public static class Utils {
         Texture2D texture = new Texture2D((int)width, (int)height, TextureFormat.RGB24, false, false);
         byte[] imageData = new byte[(int)width * (int) height * (int)channels];
 
-        return GetImageIntoPreallocatedTexture(redis, key, texture, imageData, (int)width, (int)height, (int)channels);
+        bool succeed = GetImageIntoPreallocatedTexture(redis, key, ref texture, imageData, (int)width, (int)height, (int)channels);
+        if (succeed) {
+            return texture;
+        }
+        else {
+            return null;
+        }
+
     }
 
-    public static Texture2D GetImageIntoPreallocatedTexture(RedisDataAccessProvider redis, string key, Texture2D texture, byte[] textureRaw, int width, int height, int channels = 3) {
+    public static bool GetImageIntoPreallocatedTexture(RedisDataAccessProvider redis, string key, ref Texture2D texture, byte[] textureRaw, int width, int height, int channels) {
         int commandId = redis.SendCommand(RedisCommand.GET, key);
         // 70-90% of the time is spent here
         textureRaw = Utils.RedisTryReadData(redis, commandId);
         if (textureRaw == null)
-            return null;
+            return false;
         
         if (channels == 2) {
             textureRaw = Utils.GRAY16ToRGB24((int)width, (int)height, textureRaw);
@@ -274,6 +281,6 @@ public static class Utils {
 
         texture.LoadRawTextureData(textureRaw);
         texture.Apply();
-        return texture;
+        return true;
     }
 }
