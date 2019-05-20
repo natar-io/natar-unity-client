@@ -101,7 +101,7 @@ namespace Natar
                 }
             }
 
-            public static void DrawMatrix4x4Row(Matrix4x4 matrix, int row) {
+            private static void DrawMatrix4x4Row(Matrix4x4 matrix, int row) {
                 int start = row * 4, end = start + 4;
                 EditorGUILayout.BeginHorizontal();
                 for (int i = start ; i < end ; i++) {

@@ -25,6 +25,8 @@ namespace Natar
 		public Texture2D preallocatedTexture;
 		private byte[] preallocatedData;
 
+		public RawImage OutImage;
+
 		private ImageInformations currentImageInformations = new ImageInformations(), 
 									previousImageInformations = new ImageInformations();
 		private bool imageNeedsUpdate = false;
@@ -48,6 +50,7 @@ namespace Natar
 		public void Update() {
 			if (imageNeedsUpdate) {
 				Utils.GetImageIntoPreallocatedTexture(redis, Key, ref preallocatedTexture, preallocatedData, imageData.Width, imageData.Height, imageData.Channels);
+				if (OutImage != null) { OutImage.texture = preallocatedTexture; }
 				imageNeedsUpdate = false;
 			}
 		}
@@ -104,7 +107,7 @@ namespace Natar
 			OnServiceConnectionStateChanged(false);
 		}
 
-		private void init() {
+		public void init() {
 			imageData = load();
 			if (imageData.Width == -1 || imageData.Height == -1 || imageData.Channels == -1) {
 				return;
@@ -146,5 +149,9 @@ namespace Natar
 			redisSubscriber = null;
 		}
 		#endregion
+
+		public Texture2D GetCurrentTexture() {
+			return this.preallocatedTexture;
+		}
 	}
 }

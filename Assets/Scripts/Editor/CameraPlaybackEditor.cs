@@ -1,0 +1,82 @@
+using UnityEditor;
+using UnityEngine;
+
+namespace Natar
+{
+    namespace NatarEditor
+    {
+        [CustomEditor(typeof(CameraPlayback))]
+        public class CameraPlaybackEditor : Editor 
+        {
+            private CameraPlayback C { get { return target as CameraPlayback; } }
+            private MonoScript script;
+
+            //Creating serialized properties so we can retrieve variable attributes without having to recreate them in the custom editor
+            protected SerializedProperty key, outImage;
+
+            private bool OptionFoldout = true;
+
+            private void OnEnable() {   
+                script = MonoScript.FromMonoBehaviour(C);
+                key = serializedObject.FindProperty("Key");
+                outImage = serializedObject.FindProperty("OutImage");
+            }
+
+            public override void OnInspectorGUI() {
+
+                serializedObject.Update();
+
+                EditorGUI.BeginDisabledGroup(true);
+                {
+                    script = (MonoScript)EditorGUILayout.ObjectField("Script", script, typeof(MonoScript), false);
+                }
+                EditorGUI.EndDisabledGroup();
+
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                {
+                    EditorGUI.indentLevel++;
+                    OptionFoldout = EditorGUILayout.Foldout(OptionFoldout, "Options");
+                    EditorGUI.indentLevel--;
+
+                    if (OptionFoldout) {
+
+                        EditorGUILayout.BeginHorizontal(NatarEditor.FlatBox);
+                        {
+                            EditorGUILayout.PropertyField(key, new GUIContent("Data key", "Redis data key holding intrinsics parameters informations."), GUILayout.MinWidth(50));
+                            if (GUILayout.Button(new GUIContent("T", "Test if the key contains data."), EditorStyles.miniButton, GUILayout.Width(18))) {
+                                if (C.state != ServiceStatus.DISCONNECTED) {
+                                    C.init();
+                                }
+                            }
+                            NatarEditor.DrawServiceStatus(C.state);
+                        }
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal(NatarEditor.FlatBox);
+                        {
+                            EditorGUILayout.PropertyField(outImage, new GUIContent("Out image", ""), GUILayout.MinWidth(50));
+                        }
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.BeginHorizontal(NatarEditor.FlatBox);
+                        {
+                            GUILayout.FlexibleSpace();
+                            Texture2D tex = C.GetCurrentTexture();
+                            if (tex != null) {
+                                NatarEditor.DrawTexture(tex);
+                            }
+                            else {
+                                GUILayout.Label("No preview available.");
+                            }
+                            GUILayout.FlexibleSpace();
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                }
+                EditorGUILayout.EndVertical();
+
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+    }
+}

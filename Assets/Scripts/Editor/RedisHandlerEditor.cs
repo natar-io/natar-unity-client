@@ -52,7 +52,7 @@ namespace Natar
                             EditorGUIUtility.labelWidth = 18;
                             EditorGUILayout.PropertyField(RedisServerPort, new GUIContent("", "Port"), GUILayout.MaxWidth(35));
                             EditorGUIUtility.labelWidth = 0;
-                            R.NoDelaySocket = GUILayout.Toggle(R.NoDelaySocket, new GUIContent("D","Toggle no delay sockets for the conneciton."), EditorStyles.miniButton, GUILayout.Width(18));
+                            R.NoDelaySocket = GUILayout.Toggle(R.NoDelaySocket, new GUIContent("D","Toggle no delay sockets for this connection."), EditorStyles.miniButton, GUILayout.Width(18));
 
                             if (R.IsConnected()) {
                                 NatarEditor.DrawServiceStatus(ServiceStatus.WORKING);
@@ -77,10 +77,10 @@ namespace Natar
                         }
                         EditorGUILayout.EndHorizontal();
                     }
-                    EditorGUILayout.EndVertical();                    
+                    EditorGUILayout.EndVertical();
                 }
-
                 EditorGUILayout.EndVertical();
+
                 serializedObject.ApplyModifiedProperties();
             }
         }
