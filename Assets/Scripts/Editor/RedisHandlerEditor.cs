@@ -28,6 +28,8 @@ namespace Natar
 
                 serializedObject.Update();
 
+                EditorGUI.BeginChangeCheck();
+
                 // This will show the current used script and make it clickable. When clicked, the script's code is open into the default editor.
                 EditorGUI.BeginDisabledGroup(true);
                 script = (MonoScript)EditorGUILayout.ObjectField("Script", script, typeof(MonoScript), false);
@@ -82,6 +84,15 @@ namespace Natar
                 EditorGUILayout.EndVertical();
 
                 serializedObject.ApplyModifiedProperties();
+
+                if (EditorGUI.EndChangeCheck()) 
+                {
+                    // When a property is accessed directly from script instead of via serialized properties
+                    // pressing play causes the property to reset to its original value.
+                    // Setting the target dirty prevent this effect
+                    Undo.RecordObject(target, "RedisHandler values changed");
+                    EditorUtility.SetDirty(target);
+                }
             }
         }
     }

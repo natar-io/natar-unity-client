@@ -25,6 +25,8 @@ namespace Natar
 
                 serializedObject.Update();
 
+                EditorGUI.BeginChangeCheck();
+
                 // This will show the current used script and make it clickable. When clicked, the script's code is open into the default editor.
                 EditorGUI.BeginDisabledGroup(true);
                 {
@@ -45,7 +47,7 @@ namespace Natar
                             EditorGUILayout.BeginHorizontal();
                             {
                                 EditorGUILayout.PropertyField(key, new GUIContent("Data key", "Redis data pointer key."));
-
+                                
                                 S.LiveUpdate = GUILayout.Toggle(S.LiveUpdate, new GUIContent("U","Enable live update mod."), EditorStyles.miniButton, GUILayout.Width(18));
                                 S.ReverseYAxis = GUILayout.Toggle(S.ReverseYAxis, new GUIContent("Y","Toggle reverse y axis mod."), EditorStyles.miniButton, GUILayout.Width(18));
                                 if (GUILayout.Button(new GUIContent("T", "Test if the key contains data."), EditorStyles.miniButton, GUILayout.Width(18))) {
@@ -76,6 +78,15 @@ namespace Natar
                 EditorGUILayout.EndVertical();
                 
                 serializedObject.ApplyModifiedProperties();
+                
+                if (EditorGUI.EndChangeCheck()) 
+                {
+                    // When a property is accessed directly from script instead of via serialized properties
+                    // pressing play causes the property to reset to its original value.
+                    // Setting the target dirty prevent this effect
+                    Undo.RecordObject(target, "SetupExtrinsics values changed");
+                    EditorUtility.SetDirty(target);
+                }
             }
         }
     }
