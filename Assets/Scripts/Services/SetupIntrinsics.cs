@@ -22,9 +22,12 @@ namespace Natar
 
 		private Camera targetCamera;
 
+		public void Awake() {
+			targetCamera = GetComponent<Camera>();
+		}
+
 		public void Start() {
 
-			targetCamera = GetComponent<Camera>();
 			state = ServiceStatus.DISCONNECTED;
 
 			rHandler = RedisHandler.Instance;
