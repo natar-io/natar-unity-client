@@ -142,11 +142,14 @@ namespace Natar
 			Matrix4x4? transRot = new Matrix4x4();
 			transRot = Utils.FloatArrayToMatrix4x4(extrinsics.matrix);
 			if (transRot == null) { return false; }
-
+			
+			// Units convertion from militers (Natar) to meter (Unity)
+			Matrix4x4 scale = Matrix4x4.Scale(new Vector3(0.001f, 0.001f, 0.001f));
 			if (ReverseYAxis) {
-				Matrix4x4 scale = Matrix4x4.Scale(new Vector3(1, -1, 1));
-				transRot = scale * transRot;
-			}
+				scale = Matrix4x4.Scale(new Vector3(0.001f, -0.001f, 0.001f));
+			};
+
+			transRot = scale * transRot;
 
 			transform.localPosition = Utils.ExtractTranslation((Matrix4x4)transRot);
 			transform.localRotation = Utils.ExtractRotation((Matrix4x4)transRot);
@@ -161,7 +164,7 @@ namespace Natar
 		public bool CheckScriptCurrentState() {
 			return this.rHandler != null && 
 					this.redis != null &&
-					this.redisSubscriber != null;
+					(this.LiveUpdate ? this.redisSubscriber != null : this.redisSubscriber == null);
 		}
 	}
 }
