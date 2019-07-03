@@ -1,8 +1,8 @@
 public class ImageData {
-    public int Width {get; set;}
-    public int Height {get; set;}
-    public int Channels {get; set;}
-    public string Pixelformat {get; set;}
+    public int Width {get; set;} = -1;
+    public int Height {get; set;} = -1;
+    public int Channels {get; set;} = -1;
+    public string Pixelformat {get; set;} = "";
 
     public ImageData(int width, int height, int channels, string pixelformat = "") {
         Width = width;
@@ -11,10 +11,5 @@ public class ImageData {
         Pixelformat = pixelformat;
     }
 
-    public ImageData() {
-        Width = -1;
-        Height = -1;
-        Channels = -1;
-        Pixelformat = "";
-    }
+    public ImageData() {}
 }
