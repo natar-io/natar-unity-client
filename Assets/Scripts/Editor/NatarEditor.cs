@@ -112,6 +112,11 @@ namespace Natar
             }
 
             public static void DrawTexture(Texture2D texture) {
+                if (texture.width == 0 || texture.height == 0) {
+                    GUILayout.Label("Texture width or height equals to 0");
+                    return;
+                }
+
                 double aspectRatio = texture.width / texture.height;
                 GUIStyle style = new GUIStyle();
                 style.clipping = TextClipping.Clip;
