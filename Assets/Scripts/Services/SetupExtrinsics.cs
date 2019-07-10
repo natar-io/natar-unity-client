@@ -64,7 +64,7 @@ public class SetupExtrinsics : MonoBehaviour, INectarService {
 		if (KeepTracking) {
 			// Before that ask nectar is the service is up and running
 			subscriber = new Subscriber(redis);
-			subscriber.Subscribe(OnExtrinsicsReceived, objectName.ToLower() + ":" + Key, UnsubKey);
+			subscriber.Subscribe(OnExtrinsicsReceived, key(), UnsubKey);
 			state = ComponentState.WORKING;
 		}
 		else {
@@ -74,12 +74,17 @@ public class SetupExtrinsics : MonoBehaviour, INectarService {
 		}
 	}
 
+    private String key(){
+        return Key;
+// objectName.ToLower() + ":" + //Key;
+    }
+    
 	/* Load
 	 * This function load data from Redis. If loading fails, it asks Nectar to start the desired service.
 	 * Returns true if you data are succesfully loaded
 	 */
 	public bool Load() {
-		ExtrinsicsParameters = Utils.RedisTryGetExtrinsics(redis, objectName.ToLower() + ":" + Key);
+		ExtrinsicsParameters = Utils.RedisTryGetExtrinsics(redis, key());
 		// If data are not in redis, then we ask Nectar to set them
 		if (ExtrinsicsParameters == null) {
 			Utils.Log(objectName, "Data not found in Redis. If Nectar is up, we will restart the service", 1);
@@ -184,9 +189,9 @@ public class SetupExtrinsicsEditor : Editor
 		GUILayout.BeginHorizontal();
 		EditorGUILayout.LabelField(new GUIContent("Key", "The redis key where to look for intrinsics parameters. The key prefix is defined by the GameObject name."));
 		// Non modifiable value so disable GUI, print and renable it.
-		GUI.enabled = false;
-		EditorGUILayout.TextField(script.objectName.ToLower() + ":");
-		GUI.enabled = true;
+		// GUI.enabled = false;
+		// EditorGUILayout.TextField(""); //script.objectName.ToLower() + ":");
+		// GUI.enabled = true;
 		// Key text field
 		script.Key = EditorGUILayout.TextField (script.Key);
 		GUILayout.EndHorizontal();
