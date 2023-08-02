@@ -42,7 +42,13 @@ public class CameraPlayback : MonoBehaviour, INectarService {
 	/// Fake public variable (not accessible from the editor) getting the current object name to use it as a base key to get data in Redis
 	/// </summary>
 	public string objectName;
-	
+
+  /// <summary>
+	/// Decode a 16Bit depth video feed instead of 8bit RGB, like in Orbbec depth cameras.
+	/// </summary>
+  [Tooltip("Is a Depth camera.")]
+	public bool Use16BitDepth = false;
+
 	/// <summary>
 	/// The current state of the component. Can be DISCONNECTED, CONNECTED or WORKING.
 	/// DISCONNECTED - When the component fails to connect to Redis.
@@ -173,7 +179,10 @@ public class CameraPlayback : MonoBehaviour, INectarService {
 		}
 		
 		videoTexture = new Texture2D (imageWidth, imageHeight, TextureFormat.RGB24, false);
-		imageData = new byte[imageHeight * imageWidth * imageChannels];
+
+		// imageData = new byte[imageHeight * imageWidth * imageChannels];
+    imageData = new byte[imageHeight * imageWidth * 3];
+
 		// if (subscriber == null) -> fix the multiple subscription problem but causes an undefined object ref when it crashes but is not null
 		subscriber = new Subscriber(redis);
 		subscriber.Subscribe(OnImageReceived, Key, UnsubKey);
@@ -215,7 +224,7 @@ public class CameraPlayback : MonoBehaviour, INectarService {
 	/// <param name="channelName">The channel where data were published</param>
 	/// <param name="message">The published data</param>
 	void OnImageReceived (string channelName, byte[] message) {
-		Debug.Log("Frame received :" + channelName);
+		// Debug.Log("Frame received :" + channelName);
 		if (channelName == UnsubKey) {
 			subscriber.Unsubscribe(Key, UnsubKey);
 			return;
@@ -266,9 +275,18 @@ public class CameraPlayback : MonoBehaviour, INectarService {
 		}
 
 		if (imageDataUpdated) {
-			Utils.GetImageIntoPreallocatedTexture(redis, Key, videoTexture, imageData, imageWidth, imageHeight, imageChannels);
-			OutputImage.texture = videoTexture;
-			imageDataUpdated = false;
+
+      // Force depth image with 2 channels... even if there are there 3 for now.
+			// Utils.GetImageIntoPreallocatedTexture(redis, Key, videoTexture, imageData, imageWidth, imageHeight, imageChannels);
+			
+      if(Use16BitDepth){ 
+        float[] depthImage = Utils.DecodeDepthImage(redis, Key, imageData, imageWidth, imageHeight, imageChannels);
+        Utils.loadDepthImageToIntoPreallocatedTexture(depthImage, videoTexture, imageData, imageWidth, imageHeight, imageChannels);
+      } else {
+         Utils.GetImageIntoPreallocatedTexture(redis, Key, videoTexture, imageData, imageWidth, imageHeight, imageChannels);
+      }
+      OutputImage.texture = videoTexture;
+      imageDataUpdated = false;
 		}
 	}
 
@@ -293,6 +311,7 @@ public class CameraPlaybackEditor : Editor
 	SerializedProperty mscript = null;
 	SerializedProperty arCamera = null;
 	SerializedProperty overrideKey = null;
+  SerializedProperty use16BitDepth = null;
 	SerializedProperty key = null;
 	SerializedProperty outputImage = null;
 
@@ -302,6 +321,9 @@ public class CameraPlaybackEditor : Editor
 		mscript = serializedObject.FindProperty("m_Script");
 		arCamera = serializedObject.FindProperty("ARCamera");
 		overrideKey = serializedObject.FindProperty("OverrideKey");
+    use16BitDepth = serializedObject.FindProperty("Use16BitDepth");
+    //	public bool Use16BitDepth = false;
+
 		key = serializedObject.FindProperty("Key");
 		outputImage = serializedObject.FindProperty("OutputImage");
 	}
@@ -319,7 +341,7 @@ public class CameraPlaybackEditor : Editor
 		GUI.enabled = true;
 		
 		GUILayout.Space(5);
-
+	  EditorGUILayout.PropertyField(use16BitDepth);
 		paramsFoldout = EditorGUILayout.Foldout(paramsFoldout, "Parameters", foldoutStyle);
 		if (paramsFoldout) 
 		{
