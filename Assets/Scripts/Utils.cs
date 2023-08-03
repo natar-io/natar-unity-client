@@ -213,6 +213,36 @@ public static class Utils {
         return dataRGB;
     }
 
+    public static byte[] Depth16ToRGB24(int width, int height, byte[] data) {
+        byte[] dataRGB = new byte[width * height * 3];
+        int cpt = 0;
+
+        for (int i = 0 ; i < data.Length  ; i+=2) {
+            float depth = ((data[i+1] & 0xFF) * 255f) + (float) (data[i] & 0xFF);
+            depth = ((depth - 400) / 3000) * 255f;
+
+            byte red, green, blue;
+              if (depth < 85) {
+                  red = 0; 
+                  green = (byte)(3f * depth);
+                  blue = (byte)(255 - (3f * depth));
+              } else if (depth < 170) {
+                  red = (byte)((depth - 85) * 3f);
+                  green = (byte)(255 - (3f * depth - 170));
+                  blue = 0;
+              } else {
+                  red = (byte)(255);
+                  green = (byte)((depth - 170) * 3f);
+                  blue = 0;
+              }
+              dataRGB[cpt++] = red;
+              dataRGB[cpt++] = green;
+              dataRGB[cpt++] = blue;
+        }
+        return dataRGB;
+    }
+   
+
     public static Matrix4x4? FloatArrayToMatrix4x4(float[] array) {
         if (array == null) { return null; }
         Matrix4x4 mat = new Matrix4x4();
@@ -275,12 +305,69 @@ public static class Utils {
         if (textureRaw == null)
             return false;
         
-        if (channels == 2) {
-            textureRaw = Utils.GRAY16ToRGB24((int)width, (int)height, textureRaw);
+        if (channels == 2 ) {
+          textureRaw = Utils.GRAY16ToRGB24((int)width, (int)height, textureRaw);
         }
+
+
+        // TODO: handle properly 1 channel
+        //if (channels == 1 ) {
+        //    textureRaw = Utils.Depth16ToRGB24((int)width, (int)height, textureRaw);
+        // }
 
         texture.LoadRawTextureData(textureRaw);
         texture.Apply();
         return true;
+    }
+
+     public static float[] DecodeDepthImage(RedisDataAccessProvider redis, string key, byte[] textureRaw, 
+                                              int width, int height, int channels = 1) {
+
+        int commandId = redis.SendCommand(RedisCommand.GET, key);
+        // 70-90% of the time is spent here
+        textureRaw = Utils.RedisTryReadData(redis, commandId);
+     
+        float[] depthData = new float[width * height];
+        int cpt = 0;
+
+        for (int i = 0 ; i < textureRaw.Length  ; i+=2) {
+            float depth = ((textureRaw[i+1] & 0xFF) * 255f) + (float) (textureRaw[i] & 0xFF);
+            depthData[i/2] = depth;  
+            // depth = ((depth - 400) / 3000) * 255f;
+        }
+       
+        return depthData;
+    }
+
+     public static Texture2D loadDepthImageToIntoPreallocatedTexture(float[] depthImage, Texture2D texture, byte[] textureRaw, int width, int height, int channels = 3) {
+
+        byte[] dataRGB = new byte[width * height * 3];
+        int cpt = 0;
+        for (int i = 0 ; i < depthImage.Length  ; i++) {
+            float depth = depthImage[i];
+            depth = ((depth - 400) / 3000) * 255f;
+
+            byte red, green, blue;
+              if (depth < 85) {
+                  red = 0; 
+                  green = (byte)(3f * depth);
+                  blue = (byte)(255 - (3f * depth));
+              } else if (depth < 170) {
+                  red = (byte)((depth - 85) * 3f);
+                  green = (byte)(255 - (3f * depth - 170));
+                  blue = 0;
+              } else {
+                  red = (byte)(255);
+                  green = (byte)((depth - 170) * 3f);
+                  blue = 0;
+              }
+              dataRGB[cpt++] = red;
+              dataRGB[cpt++] = green;
+              dataRGB[cpt++] = blue;
+        }
+
+        texture.LoadRawTextureData(dataRGB);
+        texture.Apply();
+        return texture;
     }
 }
