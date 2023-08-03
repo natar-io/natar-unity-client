@@ -301,13 +301,13 @@ public static class Utils {
             return null;
         
         if (channels == 2 ) {
-            textureRaw = Utils.GRAY16ToRGB24((int)width, (int)height, textureRaw);
+          textureRaw = Utils.GRAY16ToRGB24((int)width, (int)height, textureRaw);
         }
 
 
         // TODO: handle properly 1 channel
         //if (channels == 1 ) {
-            textureRaw = Utils.Depth16ToRGB24((int)width, (int)height, textureRaw);
+        //    textureRaw = Utils.Depth16ToRGB24((int)width, (int)height, textureRaw);
         // }
 
         texture.LoadRawTextureData(textureRaw);

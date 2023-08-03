@@ -278,7 +278,7 @@ public class CameraPlayback : MonoBehaviour, INectarService {
 
       // Force depth image with 2 channels... even if there are there 3 for now.
 			// Utils.GetImageIntoPreallocatedTexture(redis, Key, videoTexture, imageData, imageWidth, imageHeight, imageChannels);
-			
+
       if(Use16BitDepth){ 
         float[] depthImage = Utils.DecodeDepthImage(redis, Key, imageData, imageWidth, imageHeight, imageChannels);
         Utils.loadDepthImageToIntoPreallocatedTexture(depthImage, videoTexture, imageData, imageWidth, imageHeight, imageChannels);
@@ -342,6 +342,7 @@ public class CameraPlaybackEditor : Editor
 		
 		GUILayout.Space(5);
 	  EditorGUILayout.PropertyField(use16BitDepth);
+
 		paramsFoldout = EditorGUILayout.Foldout(paramsFoldout, "Parameters", foldoutStyle);
 		if (paramsFoldout) 
 		{
