@@ -339,7 +339,7 @@ public static class Utils {
         return depthData;
     }
 
-     public static Texture2D loadDepthImageToIntoPreallocatedTexture(float[] depthImage, Texture2D texture, byte[] textureRaw, int width, int height, int channels = 3) {
+     public static Texture2D loadDepthImageToIntoPreallocatedTexture(float[] depthImage, ref Texture2D texture, byte[] textureRaw, int width, int height, int channels = 3) {
 
         byte[] dataRGB = new byte[width * height * 3];
         int cpt = 0;

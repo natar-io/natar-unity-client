@@ -19,7 +19,9 @@ namespace Natar
 		private Subscriber redisSubscriber;
 
 		public String Key = "camera";
+    public bool Use16BitDepth = false;
 		public ServiceStatus state = ServiceStatus.DISCONNECTED;
+
 
 		private ImageData imageData = new ImageData();
 		public Texture2D preallocatedTexture = null;
@@ -50,8 +52,16 @@ namespace Natar
 			if (!CheckScriptCurrentState()) { this.Start(); }
 			#endif
 			if (imageNeedsUpdate) {
-				Utils.GetImageIntoPreallocatedTexture(redis, Key, ref preallocatedTexture, preallocatedData, imageData.Width, imageData.Height, imageData.Channels);
-				if (OutImage != null) { OutImage.texture = preallocatedTexture; }
+
+        if(Use16BitDepth){
+          float[] depthImage = Utils.DecodeDepthImage(redis, Key, preallocatedData, 
+                                              imageData.Width, imageData.Height, 1); 
+          Utils.loadDepthImageToIntoPreallocatedTexture(depthImage, ref preallocatedTexture, preallocatedData, imageData.Width, imageData.Height, imageData.Channels); 
+
+        }else {
+				  Utils.GetImageIntoPreallocatedTexture(redis, Key, ref preallocatedTexture, preallocatedData, imageData.Width, imageData.Height, imageData.Channels);
+				}
+        if (OutImage != null) { OutImage.texture = preallocatedTexture; }
 				imageNeedsUpdate = false;
 			}
 		}
