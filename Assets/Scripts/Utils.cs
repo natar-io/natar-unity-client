@@ -127,6 +127,27 @@ public static class Utils {
         return poseMatrix;
     }
 
+    // Projective device parts 
+    public static Vector3 PixelToWorld(IntrinsicsParameters intrinsics, int x, int y, float depthValue) {
+
+      Vector3 result = new Vector3();
+
+      float depth = depthValue;
+      float ifx = 1f / intrinsics.fx;
+      float ify = 1f / intrinsics.fy;
+      float cx = intrinsics.cx;
+      float cy = intrinsics.cy;
+
+      // float depth = 1000 * depthLookUp[depthValue];
+      result.x = (float) ((x - cx) * depth * ifx);
+      result.y = (float) ((y - cy) * depth * ify);
+
+      result.z = depth;
+    return result;
+  }
+
+
+
     /// <summary>
     /// Convert raw image data (byte array) into Color32 array.
     /// </summary>
@@ -295,7 +316,6 @@ public static class Utils {
         else {
             return null;
         }
-
     }
 
     public static bool GetImageIntoPreallocatedTexture(RedisDataAccessProvider redis, string key, ref Texture2D texture, byte[] textureRaw, int width, int height, int channels) {
@@ -331,8 +351,18 @@ public static class Utils {
         int cpt = 0;
 
         for (int i = 0 ; i < textureRaw.Length  ; i+=2) {
-            float depth = ((textureRaw[i+1] & 0xFF) * 255f) + (float) (textureRaw[i] & 0xFF);
-            depthData[i/2] = depth;  
+            // Size in 0.1 mm
+            ushort combined = (ushort)(textureRaw[i] | (textureRaw[i+1] << 8));
+
+            // remove the 6 higher bits
+            // combined = (ushort) (combined & 0x03FF); 
+            // float comb = Mathf.HalfToFloat(combined);
+            // Half comb = BitConverter.UInt16BitsToHalf(combined);
+           
+             // int d = (textureRaw[i+1] & 0xFF) << 8 + (textureRaw[i] & 0xFF);
+            // float depth = (float) comb;
+            float depth = (float) combined * 0.001f;
+            depthData[i/2] = depth;
             // depth = ((depth - 400) / 3000) * 255f;
         }
        
@@ -345,7 +375,7 @@ public static class Utils {
         int cpt = 0;
         for (int i = 0 ; i < depthImage.Length  ; i++) {
             float depth = depthImage[i];
-            depth = ((depth - 400) / 3000) * 255f;
+            depth = (depth / 3) * 255f;
 
             byte red, green, blue;
               if (depth < 85) {

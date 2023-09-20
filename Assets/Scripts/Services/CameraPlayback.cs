@@ -37,6 +37,10 @@ namespace Natar
 
 		private event OnServiceConnectionStateChangedHandler ServiceConnectionStateChanged;
 
+    public GameObject DepthPrefab;
+    public CameraPlayback ColorImage;
+    private GameObject[] DepthObjects;
+
 		public void Start() {
 			this.state = ServiceStatus.DISCONNECTED;
 
@@ -47,17 +51,75 @@ namespace Natar
 			ServiceConnectionStateChanged += OnServiceConnectionStateChanged;
 		}
 
+       void OnApplicationQuit()
+    {
+        Debug.Log("Application ending after " + Time.time + " seconds");
+        if(DepthObjects == null){
+          DepthObjects = new GameObject[imageData.Width * imageData.Height]; 
+          for(int i = 0; i < (imageData.Width * imageData.Height) - 200; i += 200){
+            Destroy(DepthObjects[i]);
+          }
+        }
+    }
+
 		public void Update() {
 			#if UNITY_EDITOR
 			if (!CheckScriptCurrentState()) { this.Start(); }
 			#endif
 			if (imageNeedsUpdate) {
-
         if(Use16BitDepth){
+
+
+          // TODO: do this only once.
+          IntrinsicsParameters intrinsics = this.GetComponent<SetupIntrinsics>().GetIntrinsicsParameters();
+
           float[] depthImage = Utils.DecodeDepthImage(redis, Key, preallocatedData, 
                                               imageData.Width, imageData.Height, 1); 
           Utils.loadDepthImageToIntoPreallocatedTexture(depthImage, ref preallocatedTexture, preallocatedData, imageData.Width, imageData.Height, imageData.Channels); 
 
+
+          if(intrinsics != null){   
+
+            if(DepthObjects == null){
+              DepthObjects = new GameObject[imageData.Width * imageData.Height]; 
+              for(int i = 0; i < depthImage.Length - 100; i += 100){
+                DepthObjects[i] = Instantiate(DepthPrefab);
+              }
+            }
+
+            float ifx =  1f / intrinsics.fx;
+            float ify =  1f / intrinsics.fy;
+            float cx = intrinsics.cx;
+            float cy = intrinsics.cy; 
+            float depth = depthImage[320 * 640 + 240];
+            
+            Vector3 result;
+            float x1 = 300; 
+            float y1 = 100;
+              result.x = (float) ((x1 - cx) * depth * ifx);
+              result.y = (float) ((y1 - cy) * depth * ify);
+
+            result.z = depth;    
+
+            Vector3[] depthPoints = new Vector3[depthImage.Length];
+
+            for(int i = 0; i < depthImage.Length - 100; i += 100){
+
+              int x = i % imageData.Width;
+              int y = i / imageData.Height;
+
+              depthPoints[i] = Utils.PixelToWorld(intrinsics, x, y, depthImage[i]);
+              if(DepthObjects[i] != null){
+                // Debug.Log("depthPoints[i] " + x + " " + y + " "+  depthImage[i]);  
+                DepthObjects[i].transform.position = depthPoints[i];
+              }
+             
+            }
+
+          }else {
+            Debug.Log("No intrinsics...");
+          }
+          
         }else {
 				  Utils.GetImageIntoPreallocatedTexture(redis, Key, ref preallocatedTexture, preallocatedData, imageData.Width, imageData.Height, imageData.Channels);
 				}
@@ -95,10 +157,14 @@ namespace Natar
 				redisSubscriber.Unsubscribe(Key, "unsub");
 				return;
 			}
+
+     //  Debug.Log("OnImageReceived " + channelName);
 			string json = Utils.ByteToString(message);
-			currentImageInformations = Utils.JSONTo<ImageInformations>(json);
-			imageNeedsUpdate = currentImageInformations != null && currentImageInformations.imageCount != previousImageInformations.imageCount;
-			previousImageInformations = currentImageInformations;
+
+			// currentImageInformations = Utils.JSONTo<ImageInformations>(json);
+			// imageNeedsUpdate = currentImageInformations != null && currentImageInformations.imageCount != previousImageInformations.imageCount;
+			imageNeedsUpdate = true;
+      previousImageInformations = currentImageInformations;
 		}
 		#endregion
 

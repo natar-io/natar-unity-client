@@ -21,6 +21,7 @@ namespace Natar
 		private event OnServiceConnectionStateChangedHandler ServiceConnectionStateChanged;
 
 		private Camera targetCamera;
+    public IntrinsicsParameters intrinsicsParameters;
 
 		public void Awake() {
 			targetCamera = GetComponent<Camera>();
@@ -93,15 +94,30 @@ namespace Natar
 			return Utils.RedisTryGetIntrinsics(redis, Key);
 		}
 
+    public IntrinsicsParameters GetIntrinsicsParameters(){
+      return this.intrinsicsParameters;
+    }
+
 		public void init() {
 			IntrinsicsParameters parameters = load();
-			if (applyIntrinsics(parameters)) {
+      this.intrinsicsParameters = parameters;
+
+      if(parameters != null){
+        Debug.Log("Intrinsics: " + parameters.fx + " " + parameters.fy + " "  + parameters.cx + " " + parameters.cy);
+			
+      } else{
+        Debug.Log("No Instrinics on: " + Key);
+      }
+      
+      if (applyIntrinsics(parameters)) {
 				this.state = ServiceStatus.WORKING;
 			}
 			else {
 				this.state = ServiceStatus.CONNECTED;
 			}
 		}
+
+    
 
 		private void kill() {}
 
