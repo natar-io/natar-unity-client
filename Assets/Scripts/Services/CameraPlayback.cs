@@ -39,6 +39,7 @@ namespace Natar
 
     public GameObject DepthPrefab;
     public CameraPlayback ColorImage;
+    public PointCloudManager PointCloudManager;
     private GameObject[] DepthObjects;
 
 		public void Start() {
@@ -102,19 +103,22 @@ namespace Natar
             result.z = depth;    
 
             Vector3[] depthPoints = new Vector3[depthImage.Length];
+            Color[] colorPoints = new Color[depthImage.Length];
 
             for(int i = 0; i < depthImage.Length - 100; i += 100){
-
               int x = i % imageData.Width;
               int y = i / imageData.Height;
-
               depthPoints[i] = Utils.PixelToWorld(intrinsics, x, y, depthImage[i]);
-              if(DepthObjects[i] != null){
-                // Debug.Log("depthPoints[i] " + x + " " + y + " "+  depthImage[i]);  
-                DepthObjects[i].transform.position = depthPoints[i];
-              }
-             
+
+            //  PointCloudManager.createMesh(depthPoints, colorPoints);
+
+              // if(DepthObjects[i] != null){
+              //   // Debug.Log("depthPoints[i] " + x + " " + y + " "+  depthImage[i]);  
+              //   DepthObjects[i].transform.position = depthPoints[i];
+              // }
             }
+            PointCloudManager.CreateMesh(depthPoints, colorPoints, depthImage.Length);
+
 
           }else {
             Debug.Log("No intrinsics...");

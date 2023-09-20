@@ -12,7 +12,7 @@ namespace Natar
             private MonoScript script;
 
             //Creating serialized properties so we can retrieve variable attributes without having to recreate them in the custom editor
-            protected SerializedProperty key, outImage, use16BitDepth, depthPrefab;
+            protected SerializedProperty key, outImage, use16BitDepth, depthPrefab, pointCloudManager;
 
             private bool OptionFoldout = true;
 
@@ -22,6 +22,7 @@ namespace Natar
                 outImage = serializedObject.FindProperty("OutImage");
                 use16BitDepth = serializedObject.FindProperty("Use16BitDepth");
                 depthPrefab = serializedObject.FindProperty("DepthPrefab");
+                pointCloudManager = serializedObject.FindProperty("PointCloudManager");
             }
 
             public override void OnInspectorGUI() {
@@ -39,6 +40,7 @@ namespace Natar
 
                 EditorGUILayout.PropertyField(use16BitDepth, new GUIContent("16Bit Depth", "Check for depth Camera like Orbbec Astra plus."), GUILayout.MinWidth(50));
                 EditorGUILayout.PropertyField(depthPrefab, new GUIContent("Prefab for Depth", "Check for depth Camera like Orbbec Astra plus."), GUILayout.MinWidth(50));
+                EditorGUILayout.PropertyField(pointCloudManager, new GUIContent("Point Cloud manager script", "Find the script"), GUILayout.MinWidth(50));
                           
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 {
